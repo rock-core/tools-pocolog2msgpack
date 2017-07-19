@@ -11,4 +11,5 @@
   <depend package="libmsgpack-dev" />
   <depend package="python-nose" optional="1" />
   <depend package="python-pexpect" optional="1" />
+  <depend package="python-msgpack" optional="1" />
 </package>

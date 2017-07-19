@@ -264,7 +264,7 @@ int main(int argc, char *argv[])
 
     std::cout << numStreams << " streams" << std::endl;
 
-    std::string fileName("test.msg");
+    std::string fileName("output.msg");
     FILE* fp = fopen(fileName.c_str(), "w");
     msgpack_packer pk;
     msgpack_packer_init(&pk, fp, msgpack_fbuffer_write);
