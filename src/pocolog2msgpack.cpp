@@ -1,5 +1,7 @@
 #include <cstdlib>
+#include <cmath>
 #include <iostream>
+#include <iomanip>
 #include <vector>
 #include <list>
 #include <string>
@@ -29,6 +31,9 @@ class Converter : public Typelib::TypeVisitor
     double lastFloat;
     std::list<std::string> fieldName;
     msgpack_packer& pk;
+    int verbose;
+    int depth;
+    const int indentation;
 protected:
     bool visit_(Typelib::OpaqueType const& type)
     {
@@ -57,6 +62,11 @@ protected:
 
     unsigned int getUnsignedInt(Typelib::Numeric const& type, bool part)
     {
+        if(!part && verbose >= 3 + depth)
+            std::cout << "[pocolog2msgpack]"
+                << std::setfill(' ') << std::setw(indentation + depth) << " "
+                << "uint" << 8 * type.getSize();
+
         unsigned int i = 0;
         switch(type.getSize())
         {
@@ -85,11 +95,24 @@ protected:
                 "unknown uint size: " +
                 boost::lexical_cast<std::string>(type.getSize()));
         }
+
+        if(!part && verbose >= 3 + depth)
+        {
+            if(verbose >= 4 + depth)
+                std::cout << ": " << i;
+            std::cout << std::endl;
+        }
+
         return i;
     }
 
     signed int getSignedInt(Typelib::Numeric const& type, bool part)
     {
+        if(!part && verbose >= 3 + depth)
+            std::cout << "[pocolog2msgpack]"
+                << std::setfill(' ') << std::setw(indentation + depth) << " "
+                << "int" << 8 * type.getSize();
+
         signed int i = 0;
         switch(type.getSize())
         {
@@ -118,12 +141,25 @@ protected:
                 "unknown sint size: " +
                 boost::lexical_cast<std::string>(type.getSize()));
         }
+
+        if(!part && verbose >= 3 + depth)
+        {
+            if(verbose >= 4 + depth)
+                std::cout << ": " << i;
+            std::cout << std::endl;
+        }
+
         return i;
     }
 
     double getFloat(Typelib::Numeric const& type, bool part)
     {
-        double i = 0;  // TODO initialize with nan
+        if(!part && verbose >= 3 + depth)
+            std::cout << "[pocolog2msgpack]"
+                << std::setfill(' ') << std::setw(indentation + depth) << " "
+                << "float" << 8 * type.getSize();
+
+        double i = NAN;
         switch(type.getSize())
         {
         case 4:
@@ -136,19 +172,40 @@ protected:
             break;
         default:
             throw std::runtime_error(
-                "unknown float size: " + boost::lexical_cast<std::string>(type.getSize()));
+                "unknown float size: "
+                + boost::lexical_cast<std::string>(type.getSize()));
         }
+
+        if(!part && verbose >= 3 + depth)
+        {
+            if(verbose >= 4 + depth)
+                std::cout << ": " << i;
+            std::cout << std::endl;
+        }
+
         return i;
     }
 
     bool visit_(Typelib::Enum const&)
     {
+        if(verbose >= 3 + depth)
+            std::cout << "[pocolog2msgpack]"
+                << std::setfill(' ') << std::setw(indentation + depth) << " "
+                << "enum" << std::endl;
+
         return true;
     }
 
     bool visit_(Typelib::Pointer const& type)
     {
+        if(!part && verbose >= 3 + depth)
+            std::cout << "[pocolog2msgpack]"
+                << std::setfill(' ') << std::setw(indentation + depth) << " "
+                << "pointer" << std::endl;
+
+        depth += 1;
         TypeVisitor::visit_(type);
+        depth -= 1;
         return true;
     }
 
@@ -157,12 +214,19 @@ protected:
         const size_t numElements = type.getDimension();
         double d[numElements];
 
+        if(verbose >= 3 + depth)
+            std::cout << "[pocolog2msgpack]"
+                << std::setfill(' ') << std::setw(indentation + depth) << " "
+                << "array[" << numElements << "]" << std::endl;
+
         msgpack_pack_array(&pk, numElements);
+        depth += 1;
         for(size_t i = 0; i < numElements; i++)
         {
             visit_(type.getIndirection());
             d[i] = lastFloat;
         }
+        depth -= 1;
         return true;
     }
 
@@ -173,22 +237,41 @@ protected:
             const size_t numElements = *reinterpret_cast<uint64_t*>(data + offset);
             offset += 8;  // TODO We don't know whether this is always right!!!
 
+            if(verbose >= 3 + depth)
+                std::cout << "[pocolog2msgpack]"
+                    << std::setfill(' ') << std::setw(indentation + depth) << " "
+                    << "string[" << numElements << "]" << std::endl;
+
             part = true;
             std::string s;
+            depth += 1;
             for(size_t i = 0; i < numElements; i++)
             {
                 visit_(type.getIndirection());
                 s += (char) lastNumber;
             }
             part = false;
+            depth -= 1;
 
             msgpack_pack_str(&pk, numElements);
             msgpack_pack_str_body(&pk, s.c_str(), numElements);
         }
         else if(type.kind() == "/std/vector")
         {
-            std::cerr << "/std/vector is not implemented yet, see https://github.com/orocos-toolchain/typelib/blob/master/lang/csupport/containers.cc#L260" << std::endl;
-            msgpack_pack_nil(&pk);
+            const size_t numElements = *reinterpret_cast<uint64_t*>(data + offset);
+            offset += 8;  // TODO We don't know whether this is always right!!!
+
+            if(verbose >= 3 + depth)
+                std::cout << "[pocolog2msgpack]"
+                    << std::setfill(' ') << std::setw(indentation + depth) << " "
+                    << "vector[" << numElements << "]" << std::endl;
+
+            msgpack_pack_array(&pk, numElements);
+
+            depth += 1;
+            for(size_t i = 0; i < numElements; i++)
+                visit_(type.getIndirection());
+            depth -= 1;
         }
         else
         {
@@ -199,26 +282,41 @@ protected:
 
     bool visit_(Typelib::Compound const& type)
     {
+        if(verbose >= 3 + depth)
+            std::cout << "[pocolog2msgpack]"
+                << std::setfill(' ') << std::setw(indentation + depth) << " "
+                << "compound '" << type.getName() << "'" << std::endl;
+
         msgpack_pack_map(&pk, type.getFields().size());
+        depth += 1;
         TypeVisitor::visit_(type);
+        depth -= 1;
         return true;
     }
 
     bool visit_(Typelib::Compound const& type, Typelib::Field const& field)
     {
+        if(verbose >= 3 + depth)
+            std::cout << "[pocolog2msgpack]"
+                << std::setfill(' ') << std::setw(indentation + depth) << " "
+                << "field '" << field.getName() << "'" << std::endl;
+
         msgpack_pack_str(&pk, field.getName().size());
         msgpack_pack_str_body(&pk, field.getName().c_str(), field.getName().size());
 
         fieldName.push_back(field.getName());
+        depth += 1;
         TypeVisitor::visit_(type, field);
+        depth -= 1;
         fieldName.pop_back();
         return true;
     }
 
     using TypeVisitor::visit_;
 public:
-    Converter(uint8_t* data, msgpack_packer& pk)
-        : data(data), offset(0), part(false), pk(pk)
+    Converter(uint8_t* data, msgpack_packer& pk, int verbose)
+        : data(data), offset(0), part(false), pk(pk), verbose(verbose),
+          depth(0), indentation(1)
     {
     }
     void apply(Typelib::Type const& type, std::string const& basename)
@@ -296,7 +394,7 @@ int convert(const std::string& logfile, const std::string& output,
                 std::cout << "[pocolog2msgpack] Converting column = " << i
                     << ", t = " << t << std::endl;
 
-            Converter conv(&data[0], pk);
+            Converter conv(&data[0], pk, verbose);
             conv.apply(type, streamName);
         }
     }
