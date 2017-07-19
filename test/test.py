@@ -17,3 +17,13 @@ def test_convert_integers():
     messages = log["/messages.messages"]
     assert_equal(len(messages), 5)
     assert_equal(messages[0], 1337)
+
+
+def test_convert_strings():
+    proc = pexpect.spawn("pocolog2msgpack test/data/messages.0.log")
+    proc.expect(pexpect.EOF)
+    log = msgpack.unpack(open("output.msg", "r"))
+    assert_in("/messages.messages", log)
+    messages = log["/messages.messages"]
+    assert_equal(len(messages), 6)
+    assert_equal(messages[0], "1337")
