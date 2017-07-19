@@ -12,8 +12,12 @@
 #include <pocolog_cpp/InputDataStream.hpp>
 #include <typelib/typemodel.hh>
 #include <typelib/typevisitor.hh>
+#include <boost/program_options.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/join.hpp>
+
+
+namespace po = boost::program_options;
 
 
 std::vector<std::string> getFilenames(int argc, char *argv[])
@@ -235,18 +239,11 @@ public:
     }
 };
 
-
-int main(int argc, char *argv[])
+int convert(const std::string& logfile, const std::string& output,
+            const int verbose)
 {
-    if(argc == 1)
-    {
-        std::cerr << "No logfile given" << std::endl;
-        return EXIT_FAILURE;
-    }
-
     pocolog_cpp::MultiFileIndex* multiIndex = new pocolog_cpp::MultiFileIndex();
-
-    std::vector<std::string> filenames = getFilenames(argc, argv);
+    std::vector<std::string> filenames(1, logfile);
     multiIndex->createIndex(filenames);
 
     std::vector<pocolog_cpp::Stream*> streams = multiIndex->getAllStreams();
@@ -257,15 +254,17 @@ int main(int argc, char *argv[])
         dataStreams[i] = dynamic_cast<pocolog_cpp::InputDataStream*>(streams[i]);
         if(!dataStreams[i])
         {
-            std::cerr << "Stream #" << i << " is not a data stream!" << std::endl;
+            std::cerr << "[pocolog2msgpack] Stream #" << i
+                << " is not a data stream!" << std::endl;
             continue;
         }
     }
 
-    std::cout << numStreams << " streams" << std::endl;
+    if(verbose >= 1)
+        std::cout << "[pocolog2msgpack] " << numStreams << " streams"
+            << std::endl;
 
-    std::string fileName("output.msg");
-    FILE* fp = fopen(fileName.c_str(), "w");
+    FILE* fp = fopen(output.c_str(), "w");
     msgpack_packer pk;
     msgpack_packer_init(&pk, fp, msgpack_fbuffer_write);
 
@@ -273,10 +272,17 @@ int main(int argc, char *argv[])
     for(size_t i = 0; i < numStreams; i++)
     {
         pocolog_cpp::InputDataStream* stream = dataStreams[i];
-        if(!stream) continue;  // TODO warning
+        if(!stream)
+        {
+            std::cerr << "[pocolog2msgpack] Could not open stream #" << i
+                << std::endl;
+            continue;
+        }
 
         const size_t numSamples = stream->getSize();
-        std::cout << numSamples << " samples" << std::endl;
+        if(verbose >= 1)
+            std::cout << "[pocolog2msgpack] Stream #" << i << ": " << numSamples
+                << " samples" << std::endl;
 
         const Typelib::Type& type = *stream->getType();
         std::string streamName = stream->getName();
@@ -291,11 +297,14 @@ int main(int argc, char *argv[])
             const bool ok = stream->getSampleData(data, t);
             if(!ok)
             {
-                std::cerr << "Could not read sample data." << std::endl;
+                std::cerr << "[pocolog2msgpack] Could not read sample data."
+                    << std::endl;
                 return EXIT_FAILURE;
             }
 
-            std::cout << "column = " << i << ", t = " << t << std::endl;
+            if(verbose >= 2)
+                std::cout << "[pocolog2msgpack] Converting column = " << i
+                    << ", t = " << t << std::endl;
 
             Converter conv(&data[0], pk);
             conv.apply(type, streamName);
@@ -306,4 +315,44 @@ int main(int argc, char *argv[])
     delete multiIndex;
 
     return EXIT_SUCCESS;
+}
+
+int main(int argc, char *argv[])
+{
+    po::options_description desc("Allowed options:");
+    desc.add_options()
+        ("help,h", "Print help message")
+        ("verbose,v", boost::program_options::value<int>()->default_value(0),
+            "Verbosity level")
+        ("logfile,l", boost::program_options::value<std::string>(),
+            "Logfile")
+        ("output,o", boost::program_options::value<std::string>()->default_value("output.msg"),
+            "Output file")
+    ;
+    po::variables_map vm;
+    po::store(po::parse_command_line(argc, argv, desc), vm);
+    po::notify(vm);
+
+    if(vm.count("help"))
+    {
+        std::cout << desc << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    int verbose = vm["verbose"].as<int>();
+    if(verbose >= 1)
+    {
+        std::cout << "[pocolog2msgpack] Verbosity level is "
+            << verbose << "." << std::endl;
+    }
+
+    if(!vm.count("logfile"))
+    {
+        std::cerr << "[pocolog2msgpack] No logfile given" << std::endl;
+        return EXIT_FAILURE;
+    }
+    std::string logfile = vm["logfile"].as<std::string>();
+    std::string output = vm["output"].as<std::string>();
+
+    return convert(logfile, output, verbose);
 }

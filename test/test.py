@@ -10,7 +10,7 @@ def test_no_logfile():
 
 
 def test_convert_integers():
-    proc = pexpect.spawn("pocolog2msgpack test/data/int.0.log")
+    proc = pexpect.spawn("pocolog2msgpack -l test/data/int.0.log")
     proc.expect(pexpect.EOF)
     log = msgpack.unpack(open("output.msg", "r"))
     assert_in("/messages.messages", log)
@@ -20,7 +20,7 @@ def test_convert_integers():
 
 
 def test_convert_strings():
-    proc = pexpect.spawn("pocolog2msgpack test/data/messages.0.log")
+    proc = pexpect.spawn("pocolog2msgpack -l test/data/messages.0.log")
     proc.expect(pexpect.EOF)
     log = msgpack.unpack(open("output.msg", "r"))
     assert_in("/messages.messages", log)
