@@ -7,6 +7,8 @@
 
   <depend package="tools/pocolog_cpp" />
   <depend package="typelib" />
-  <rosdep name="boost" />
-  <rosdep name="libmsgpack-dev" />
+  <depend package="boost" />
+  <depend package="libmsgpack-dev" />
+  <depend package="python-nose" optional="1" />
+  <depend package="python-pexpect" optional="1" />
 </package>
