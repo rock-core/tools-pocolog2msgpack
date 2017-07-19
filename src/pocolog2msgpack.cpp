@@ -22,17 +22,36 @@
 namespace po = boost::program_options;
 
 
+/**
+ * Actual converter logic.
+ *
+ * The converter loads a single type from its serialized typelib representation
+ * and stores it in MessagePack format. The typelib type information must be
+ * provided.
+ */
 class Converter : public Typelib::TypeVisitor
 {
+    /** Pointer to the serialized typelib type. */
     uint8_t* data;
+    /** Size of the size type for containers in the logfile. */
+    int size;
+    /** Current memory offset of the converter, e.g. might point to a field of a compound. */
     size_t offset;
+    /** Flag that is true while converting container types. */
     bool part;
+    /** Stores the last integer. Is required to build strings from its characters. */
     unsigned int lastNumber;
+    /** Stores the last floating point number. Is required to build arrays from its entries. */
     double lastFloat;
+    /** Current field name of a compound type. */
     std::list<std::string> fieldName;
+    /** All data will be put in this packer. */
     msgpack_packer& pk;
+    /** Verbosity level. */
     int verbose;
+    /** Current depth in the type hierarchy. */
     int depth;
+    /** A constant that will be used to format debug output on stdout. */
     const int indentation;
 protected:
     bool visit_(Typelib::OpaqueType const& type)
@@ -232,16 +251,28 @@ protected:
 
     bool visit_(Typelib::Container const& type)
     {
+        // TODO Is there a way to determine 'size' automatically?
+        size_t numElements;
+        if(size == 1)
+            numElements = *reinterpret_cast<uint8_t*>(data + offset);
+        else if(size == 2)
+            numElements = *reinterpret_cast<uint16_t*>(data + offset);
+        else if(size == 4)
+            numElements = *reinterpret_cast<uint32_t*>(data + offset);
+        else if(size == 8)
+            numElements = *reinterpret_cast<uint64_t*>(data + offset);
+        else
+            throw std::runtime_error(
+                "Unknown size type size, should be one of 1, 2, 4, 8");
+        offset += size;
+
+        if(verbose >= 3 + depth)
+            std::cout << "[pocolog2msgpack]"
+                << std::setfill(' ') << std::setw(indentation + depth) << " "
+                << type.kind() << "[" << numElements << "]" << std::endl;
+
         if(type.kind() == "/std/string")
         {
-            const size_t numElements = *reinterpret_cast<uint64_t*>(data + offset);
-            offset += 8;  // TODO We don't know whether this is always right!!!
-
-            if(verbose >= 3 + depth)
-                std::cout << "[pocolog2msgpack]"
-                    << std::setfill(' ') << std::setw(indentation + depth) << " "
-                    << "string[" << numElements << "]" << std::endl;
-
             part = true;
             std::string s;
             depth += 1;
@@ -258,14 +289,6 @@ protected:
         }
         else if(type.kind() == "/std/vector")
         {
-            const size_t numElements = *reinterpret_cast<uint64_t*>(data + offset);
-            offset += 8;  // TODO We don't know whether this is always right!!!
-
-            if(verbose >= 3 + depth)
-                std::cout << "[pocolog2msgpack]"
-                    << std::setfill(' ') << std::setw(indentation + depth) << " "
-                    << "vector[" << numElements << "]" << std::endl;
-
             msgpack_pack_array(&pk, numElements);
 
             depth += 1;
@@ -314,9 +337,9 @@ protected:
 
     using TypeVisitor::visit_;
 public:
-    Converter(uint8_t* data, msgpack_packer& pk, int verbose)
-        : data(data), offset(0), part(false), pk(pk), verbose(verbose),
-          depth(0), indentation(1)
+    Converter(uint8_t* data, msgpack_packer& pk, int size, int verbose)
+        : data(data), offset(0), part(false), pk(pk), size(size),
+          verbose(verbose), depth(0), indentation(1)
     {
     }
     void apply(Typelib::Type const& type, std::string const& basename)
@@ -328,7 +351,7 @@ public:
 };
 
 int convert(const std::string& logfile, const std::string& output,
-            const int verbose)
+            const int size, const int verbose)
 {
     pocolog_cpp::MultiFileIndex* multiIndex = new pocolog_cpp::MultiFileIndex();
     std::vector<std::string> filenames(1, logfile);
@@ -394,7 +417,7 @@ int convert(const std::string& logfile, const std::string& output,
                 std::cout << "[pocolog2msgpack] Converting column = " << i
                     << ", t = " << t << std::endl;
 
-            Converter conv(&data[0], pk, verbose);
+            Converter conv(&data[0], pk, size, verbose);
             conv.apply(type, streamName);
         }
     }
@@ -416,6 +439,9 @@ int main(int argc, char *argv[])
             "Logfile")
         ("output,o", boost::program_options::value<std::string>()->default_value("output.msg"),
             "Output file")
+        ("size,s", boost::program_options::value<int>()->default_value(8),
+            "Length of the size type. This should be 8 for most machines, "
+            "but it can be 1, e.g. on robots.")
     ;
     po::variables_map vm;
     po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -442,6 +468,7 @@ int main(int argc, char *argv[])
     }
     std::string logfile = vm["logfile"].as<std::string>();
     std::string output = vm["output"].as<std::string>();
+    const int size = vm["size"].as<int>();
 
-    return convert(logfile, output, verbose);
+    return convert(logfile, output, size, verbose);
 }
