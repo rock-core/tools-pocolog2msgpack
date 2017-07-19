@@ -1,0 +1,12 @@
+<package>
+  <description brief="Logfile converter">
+    Converts pocolog to MessagePack.
+  </description>
+  <author>Alexander Fabisch/Alexander.Fabisch@dfki.de</author>
+  <license>unknown</license>
+
+  <depend package="tools/pocolog_cpp" />
+  <depend package="typelib" />
+  <rosdep name="boost" />
+  <rosdep name="libmsgpack-dev" />
+</package>
