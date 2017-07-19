@@ -20,16 +20,6 @@
 namespace po = boost::program_options;
 
 
-std::vector<std::string> getFilenames(int argc, char *argv[])
-{
-    const int numFiles = argc - 1;
-    std::vector<std::string> filenames(numFiles);
-    for(int i = 0; i < numFiles; i++)
-        filenames[i] = argv[i + 1];
-    return filenames;
-}
-
-
 class Converter : public Typelib::TypeVisitor
 {
     uint8_t* data;
@@ -319,7 +309,7 @@ int convert(const std::string& logfile, const std::string& output,
 
 int main(int argc, char *argv[])
 {
-    po::options_description desc("Allowed options:");
+    po::options_description desc("Options");
     desc.add_options()
         ("help,h", "Print help message")
         ("verbose,v", boost::program_options::value<int>()->default_value(0),
@@ -349,6 +339,7 @@ int main(int argc, char *argv[])
     if(!vm.count("logfile"))
     {
         std::cerr << "[pocolog2msgpack] No logfile given" << std::endl;
+        std::cout << desc << std::endl;
         return EXIT_FAILURE;
     }
     std::string logfile = vm["logfile"].as<std::string>();
