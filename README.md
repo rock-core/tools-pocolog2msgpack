@@ -28,13 +28,18 @@ formats. It is called `pocolog2msgpack`. These are its options:
 
 ```
 Options:
-  -h [ --help ]                     Print help message
-  -v [ --verbose ] arg (=0)         Verbosity level
-  -l [ --logfile ] arg              Logfile
-  -o [ --output ] arg (=output.msg) Output file
-  -s [ --size ] arg (=8)            Length of the size type. This should be 8 
-                                    for most machines, but it can be 1, e.g. on
-                                    robots.
+  -h [ --help ]                         Print help message
+  -v [ --verbose ] arg (=0)             Verbosity level
+  -l [ --logfile ] arg                  Logfile
+  -o [ --output ] arg (=output.msg)     Output file
+  -s [ --size ] arg (=8)                Length of the size type. This should be
+                                        8 for most machines, but it can be 1, 
+                                        e.g. on robots.
+  -c [ --container-limit ] arg (=10000) Maximum lenght of a container that will
+                                        be converted. This option should only 
+                                        be used if you have old logfiles from 
+                                        which we can't read the container size 
+                                        properly.
 ```
 
 ## Loading Logs in Python
@@ -43,8 +48,8 @@ Loading the converted logfiles in Python is as simple as those two lines:
 
 ```python
 import msgpack
-log = msgpack.unpack(open("vector_int.msg", "r"))
+log = msgpack.unpack(open("output.msg", "r"))
 ```
 
-The object `log` is a Python dictionary that contains all logged ports
+The object `log` is a Python dictionary that contains names of all logged ports
 as keys and the logged data in a list as its keys.

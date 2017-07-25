@@ -35,6 +35,8 @@ class Converter : public Typelib::TypeVisitor
     uint8_t* data;
     /** Size of the size type for containers in the logfile. */
     int size;
+    /** Maximum lenght of a container that will be converted. */
+    int containerLimit;
     /** Current memory offset of the converter, e.g. might point to a field of a compound. */
     size_t offset;
     /** Flag that is true while converting container types. */
@@ -266,6 +268,14 @@ protected:
                 "Unknown size type size, should be one of 1, 2, 4, 8");
         offset += size;
 
+        if(numElements > containerLimit)
+        {
+            std::cerr << "[pocolog2msgpack] WARNING: container limit exceeded, "
+                << "truncating " << type.kind() << "! (" << numElements << " > "
+                << containerLimit << ")" << std::endl;
+            numElements = containerLimit;
+        }
+
         if(verbose >= 3 + depth)
             std::cout << "[pocolog2msgpack]"
                 << std::setfill(' ') << std::setw(indentation + depth) << " "
@@ -337,9 +347,10 @@ protected:
 
     using TypeVisitor::visit_;
 public:
-    Converter(uint8_t* data, msgpack_packer& pk, int size, int verbose)
+    Converter(uint8_t* data, msgpack_packer& pk, int size, int containerLimit, int verbose)
         : data(data), offset(0), part(false), pk(pk), size(size),
-          verbose(verbose), depth(0), indentation(1)
+          containerLimit(containerLimit), verbose(verbose), depth(0),
+          indentation(1)
     {
     }
     void apply(Typelib::Type const& type, std::string const& basename)
@@ -351,7 +362,7 @@ public:
 };
 
 int convert(const std::string& logfile, const std::string& output,
-            const int size, const int verbose)
+            const int size, const int containerLimit, const int verbose)
 {
     pocolog_cpp::MultiFileIndex* multiIndex = new pocolog_cpp::MultiFileIndex();
     std::vector<std::string> filenames(1, logfile);
@@ -417,7 +428,7 @@ int convert(const std::string& logfile, const std::string& output,
                 std::cout << "[pocolog2msgpack] Converting column = " << i
                     << ", t = " << t << std::endl;
 
-            Converter conv(&data[0], pk, size, verbose);
+            Converter conv(&data[0], pk, size, containerLimit, verbose);
             conv.apply(type, streamName);
         }
     }
@@ -442,6 +453,10 @@ int main(int argc, char *argv[])
         ("size,s", boost::program_options::value<int>()->default_value(8),
             "Length of the size type. This should be 8 for most machines, "
             "but it can be 1, e.g. on robots.")
+        ("container-limit,c", boost::program_options::value<int>()->default_value(10000),
+            "Maximum lenght of a container that will be converted. This option "
+            "should only be used if you have old logfiles from which we can't "
+            "read the container size properly.")
     ;
     po::variables_map vm;
     po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -470,5 +485,7 @@ int main(int argc, char *argv[])
     std::string output = vm["output"].as<std::string>();
     const int size = vm["size"].as<int>();
 
-    return convert(logfile, output, size, verbose);
+    const int containerLimit = vm["container-limit"].as<int>();
+
+    return convert(logfile, output, size, containerLimit, verbose);
 }
