@@ -45,14 +45,27 @@ def test_convert_strings():
 
 
 def test_convert_vector_of_int():
-    with cleanup("vector_of_int.msg"):
-        cmd = "pocolog2msgpack -l test/data/vector_int.0.log -o vector_of_int.msg"
+    with cleanup("vector_int.msg"):
+        cmd = "pocolog2msgpack -l test/data/vector_int.0.log -o vector_int.msg"
         proc = pexpect.spawn(cmd)
         proc.expect(pexpect.EOF)
-        log = msgpack.unpack(open("vector_of_int.msg", "r"))
+        log = msgpack.unpack(open("vector_int.msg", "r"))
         assert_in("/message_producer.messages", log)
         messages = log["/message_producer.messages"]
         assert_equal(len(messages), 5)
         assert_equal(messages[0][0], 132)
         assert_equal(messages[0][1], 2054829)
         assert_equal(messages[0][2], -233235)
+
+
+def test_convert_vector_of_str():
+    with cleanup("vector_str.msg"):
+        cmd = "pocolog2msgpack -l test/data/vector_string.0.log -o vector_str.msg"
+        proc = pexpect.spawn(cmd)
+        proc.expect(pexpect.EOF)
+        log = msgpack.unpack(open("vector_str.msg", "r"))
+        assert_in("/message_producer.messages", log)
+        messages = log["/message_producer.messages"]
+        assert_equal(len(messages), 5)
+        assert_equal(messages[0][0], "hello")
+        assert_equal(messages[0][1], "world")
