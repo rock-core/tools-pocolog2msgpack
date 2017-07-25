@@ -20,3 +20,19 @@ Why do we need a converter from
   correctly. It can handle hierarchical datatypes like compounds, vectors,
   and even strings. :)
 * There are MsgPack libraries for almost any language.
+
+## Usage
+
+This repository contains a program that will convert between both log
+formats. It is called `pocolog2msgpack`. These are its options:
+
+```
+Options:
+  -h [ --help ]                     Print help message
+  -v [ --verbose ] arg (=0)         Verbosity level
+  -l [ --logfile ] arg              Logfile
+  -o [ --output ] arg (=output.msg) Output file
+  -s [ --size ] arg (=8)            Length of the size type. This should be 8 
+                                    for most machines, but it can be 1, e.g. on
+                                    robots.
+```
