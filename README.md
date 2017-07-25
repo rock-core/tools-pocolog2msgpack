@@ -36,3 +36,15 @@ Options:
                                     for most machines, but it can be 1, e.g. on
                                     robots.
 ```
+
+## Loading Logs in Python
+
+Loading the converted logfiles in Python is as simple as those two lines:
+
+```python
+import msgpack
+log = msgpack.unpack(open("vector_int.msg", "r"))
+```
+
+The object `log` is a Python dictionary that contains all logged ports
+as keys and the logged data in a list as its keys.
