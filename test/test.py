@@ -85,3 +85,35 @@ def test_convert_vector_of_str():
         assert_equal(len(messages), 5)
         assert_equal(messages[0][0], "hello")
         assert_equal(messages[0][1], "world")
+
+
+def test_convert_rigid_body_state():
+    output = "rigid_body_state.msg"
+    with cleanup(output):
+        cmd = "pocolog2msgpack -l test/data/rigid_body_state.0.log -o %s" % output
+        proc = pexpect.spawn(cmd)
+        proc.expect(pexpect.EOF)
+        log = msgpack.unpack(open(output, "r"))
+        assert_in("/message_producer.messages", log)
+        messages = log["/message_producer.messages"]
+        assert_equal(len(messages), 2)
+        assert_equal(messages[0]["time"]["microseconds"], 0)
+        assert_equal(messages[0]["sourceFrame"], "source")
+        assert_equal(messages[0]["targetFrame"], "target")
+        assert_equal(messages[0]["position"]["data"][0], 1.23)
+        assert_equal(messages[0]["position"]["data"][1], 2.52)
+        assert_equal(messages[0]["position"]["data"][2], 2.13)
+        assert_equal(messages[0]["orientation"]["re"], 2.0)
+        assert_equal(messages[0]["orientation"]["im"][0], 1.0)
+        assert_equal(messages[0]["orientation"]["im"][1], 5.0)
+        assert_equal(messages[0]["orientation"]["im"][2], -2.0)
+        cov_position = messages[0]["cov_position"]
+        assert_equal(cov_position["data"][0], 1.0)
+        assert_equal(cov_position["data"][1], 0.0)
+        assert_equal(cov_position["data"][2], 0.0)
+        assert_equal(cov_position["data"][3], 0.0)
+        assert_equal(cov_position["data"][4], 1.0)
+        assert_equal(cov_position["data"][5], 0.0)
+        assert_equal(cov_position["data"][6], 0.0)
+        assert_equal(cov_position["data"][7], 0.0)
+        assert_equal(cov_position["data"][8], 1.0)
