@@ -1,0 +1,71 @@
+#pragma once
+#include <msgpack.h>
+#include <msgpack/fbuffer.h>
+#include <typelib/typemodel.hh>
+#include <typelib/typevisitor.hh>
+
+
+/**
+ * Convert logfile.
+ * @param logfile name of the pocolog logfile
+ * @param output name of the MsgPack logfile, will be created
+ * @param size size of the size type for containers in the logfile
+ * @param containerLimit maximum lenght of a container that will be converted
+ * @param verbose verbosity level
+ * @return exit status of the program
+ */
+int convert(const std::string& logfile, const std::string& output,
+            const int size, const int containerLimit, const int verbose);
+
+
+/**
+ * Actual converter logic.
+ *
+ * The converter loads a single type from its serialized typelib representation
+ * and stores it in MessagePack format. The typelib type information must be
+ * provided.
+ */
+class Converter : public Typelib::TypeVisitor
+{
+    /** Pointer to the serialized typelib type. */
+    uint8_t* data;
+    /** Size of the size type for containers in the logfile. */
+    int size;
+    /** Maximum lenght of a container that will be converted. */
+    int containerLimit;
+    /** Current memory offset of the converter, e.g. might point to a field of a compound. */
+    size_t offset;
+    /** Flag that is true while converting container types. */
+    bool part;
+    /** Stores the last integer. Is required to build strings from its characters. */
+    unsigned int lastNumber;
+    /** Stores the last floating point number. Is required to build arrays from its entries. */
+    double lastFloat;
+    /** Current field name of a compound type. */
+    std::list<std::string> fieldName;
+    /** All data will be put in this packer. */
+    msgpack_packer& pk;
+    /** Verbosity level. */
+    int verbose;
+    /** Current depth in the type hierarchy. */
+    int depth;
+    /** A constant that will be used to format debug output on stdout. */
+    const int indentation;
+protected:
+    bool visit_(Typelib::OpaqueType const& type);
+    bool visit_(Typelib::Numeric const& type);
+    unsigned int getUnsignedInt(Typelib::Numeric const& type, bool part);
+    signed int getSignedInt(Typelib::Numeric const& type, bool part);
+    double getFloat(Typelib::Numeric const& type, bool part);
+    bool visit_(Typelib::Enum const&);
+    bool visit_(Typelib::Pointer const& type);
+    bool visit_(Typelib::Array const& type);
+    bool visit_(Typelib::Container const& type);
+    bool visit_(Typelib::Compound const& type);
+    bool visit_(Typelib::Compound const& type, Typelib::Field const& field);
+
+    using TypeVisitor::visit_;
+public:
+    Converter(uint8_t* data, msgpack_packer& pk, int size, int containerLimit, int verbose);
+    void apply(Typelib::Type const& type, std::string const& basename);
+};
