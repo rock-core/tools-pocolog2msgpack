@@ -20,6 +20,12 @@ def test_no_logfile():
     proc.expect(pexpect.EOF)
 
 
+def test_help():
+    proc = pexpect.spawn("pocolog2msgpack -h")
+    proc.expect("Options:")
+    proc.expect(pexpect.EOF)
+
+
 def test_verbose():
     proc = pexpect.spawn("pocolog2msgpack -v 5")
     proc.expect("Verbosity level is 5")
@@ -27,11 +33,12 @@ def test_verbose():
 
 
 def test_convert_integers():
-    with cleanup("integers.msg"):
-        cmd = "pocolog2msgpack -l test/data/integers.0.log -o integers.msg"
+    output = "integers.msg"
+    with cleanup(output):
+        cmd = "pocolog2msgpack -l test/data/integers.0.log -o %s" % output
         proc = pexpect.spawn(cmd)
         proc.expect(pexpect.EOF)
-        log = msgpack.unpack(open("integers.msg", "r"))
+        log = msgpack.unpack(open(output, "r"))
         assert_in("/messages.messages", log)
         messages = log["/messages.messages"]
         assert_equal(len(messages), 5)
@@ -39,11 +46,12 @@ def test_convert_integers():
 
 
 def test_convert_strings():
-    with cleanup("strings.msg"):
-        cmd = "pocolog2msgpack -l test/data/strings.0.log -o strings.msg"
+    output = "strings.msg"
+    with cleanup(output):
+        cmd = "pocolog2msgpack -l test/data/strings.0.log -o %s" % output
         proc = pexpect.spawn(cmd)
         proc.expect(pexpect.EOF)
-        log = msgpack.unpack(open("strings.msg", "r"))
+        log = msgpack.unpack(open(output, "r"))
         assert_in("/messages.messages", log)
         messages = log["/messages.messages"]
         assert_equal(len(messages), 6)
@@ -51,11 +59,12 @@ def test_convert_strings():
 
 
 def test_convert_vector_of_int():
-    with cleanup("vector_int.msg"):
-        cmd = "pocolog2msgpack -l test/data/vector_int.0.log -o vector_int.msg"
+    output = "vector_int.msg"
+    with cleanup(output):
+        cmd = "pocolog2msgpack -l test/data/vector_int.0.log -o %s" % output
         proc = pexpect.spawn(cmd)
         proc.expect(pexpect.EOF)
-        log = msgpack.unpack(open("vector_int.msg", "r"))
+        log = msgpack.unpack(open(output, "r"))
         assert_in("/message_producer.messages", log)
         messages = log["/message_producer.messages"]
         assert_equal(len(messages), 5)
@@ -65,11 +74,12 @@ def test_convert_vector_of_int():
 
 
 def test_convert_vector_of_str():
-    with cleanup("vector_str.msg"):
-        cmd = "pocolog2msgpack -l test/data/vector_string.0.log -o vector_str.msg"
+    output = "vector_str.msg"
+    with cleanup(output):
+        cmd = "pocolog2msgpack -l test/data/vector_string.0.log -o %s" % output
         proc = pexpect.spawn(cmd)
         proc.expect(pexpect.EOF)
-        log = msgpack.unpack(open("vector_str.msg", "r"))
+        log = msgpack.unpack(open(output, "r"))
         assert_in("/message_producer.messages", log)
         messages = log["/message_producer.messages"]
         assert_equal(len(messages), 5)
