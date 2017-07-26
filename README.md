@@ -21,6 +21,24 @@ Why do we need a converter from
   and even strings. :)
 * There are MsgPack libraries for almost any language.
 
+## Install
+
+TODO There is no package set that provides libmsgpack-dev yet.
+
+Dependencies are
+
+* pocolog_cpp
+* typelib
+* boost
+* libmsgpack-dev
+
+You can install the dependencies manually and install this tool with
+
+    mkdir build
+    cd build
+    cmake -DCMAKE_INSTALL_PREFIX=<install prefix> ..
+    make install
+
 ## Usage
 
 This repository contains a program that will convert between both log
@@ -54,5 +72,6 @@ log = msgpack.unpack(open("output.msg", "r"))
 The object `log` is a Python dictionary that contains names of all logged ports
 as keys and the logged data in a list as its keys.
 
-The logdata itself is stored at the key "/<task_name>.<port name>" and
-meta information (e.g. timestamps) is stored at "/<task_name>.<port name>.meta".
+The logdata itself is stored at the key `"/<task_name>.<port name>"` and
+meta information (e.g. timestamps) is stored at
+`"/<task_name>.<port name>.meta"`.
