@@ -19,7 +19,7 @@ int convert(const std::string& logfile, const std::string& output,
 
 
 /**
- * Actual converter logic.
+ * Actual converter logic for one sample.
  *
  * The converter loads a single type from its serialized typelib representation
  * and stores it in MessagePack format. The typelib type information must be
@@ -29,6 +29,8 @@ class Converter : public Typelib::TypeVisitor
 {
     /** Pointer to the serialized typelib type. */
     uint8_t* data;
+    /** Typelib's type description. */
+    Typelib::Type const& type;
     /** Size of the size type for containers in the logfile. */
     int size;
     /** Maximum lenght of a container that will be converted. */
@@ -51,6 +53,10 @@ class Converter : public Typelib::TypeVisitor
     int depth;
     /** A constant that will be used to format debug output on stdout. */
     const int indentation;
+public:
+    Converter(std::string const& basename, Typelib::Type const& type, msgpack_packer& pk, int size, int containerLimit, int verbose);
+    virtual ~Converter();
+    void apply(uint8_t* data);
 protected:
     bool visit_(Typelib::OpaqueType const& type);
     bool visit_(Typelib::Numeric const& type);
@@ -65,7 +71,6 @@ protected:
     bool visit_(Typelib::Compound const& type, Typelib::Field const& field);
 
     using TypeVisitor::visit_;
-public:
-    Converter(uint8_t* data, msgpack_packer& pk, int size, int containerLimit, int verbose);
-    void apply(Typelib::Type const& type, std::string const& basename);
+private:
+    void reset();
 };

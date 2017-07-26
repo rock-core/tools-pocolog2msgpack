@@ -11,6 +11,13 @@
 #include <string>
 #include <stdexcept>
 #include <cstdlib>
+#include <cassert>
+
+void addValidInputDataStreams(
+    const std::vector<pocolog_cpp::Stream*>& streams,
+    std::vector<pocolog_cpp::InputDataStream*>& dataStreams);
+int convertSamples(Converter& conv, pocolog_cpp::InputDataStream* stream,
+    const int verbose);
 
 
 int convert(const std::string& logfile, const std::string& output,
@@ -21,74 +28,113 @@ int convert(const std::string& logfile, const std::string& output,
     multiIndex->createIndex(filenames);
 
     std::vector<pocolog_cpp::Stream*> streams = multiIndex->getAllStreams();
-    const size_t numStreams = streams.size();
-    std::vector<pocolog_cpp::InputDataStream*> dataStreams(numStreams);
-    for(size_t i = 0; i < numStreams; i++)
-    {
-        dataStreams[i] = dynamic_cast<pocolog_cpp::InputDataStream*>(streams[i]);
-        if(!dataStreams[i])
-        {
-            std::cerr << "[pocolog2msgpack] Stream #" << i
-                << " is not a data stream!" << std::endl;
-            continue;
-        }
-    }
-
+    std::vector<pocolog_cpp::InputDataStream*> dataStreams;
+    addValidInputDataStreams(streams, dataStreams);
     if(verbose >= 1)
-        std::cout << "[pocolog2msgpack] " << numStreams << " streams"
+        std::cout << "[pocolog2msgpack] " << dataStreams.size() << " streams"
             << std::endl;
 
     FILE* fp = fopen(output.c_str(), "w");
     msgpack_packer pk;
     msgpack_packer_init(&pk, fp, msgpack_fbuffer_write);
 
-    msgpack_pack_map(&pk, numStreams);
-    for(size_t i = 0; i < numStreams; i++)
+    msgpack_pack_map(&pk, dataStreams.size());
+    int exit_status = EXIT_SUCCESS;
+    for(size_t i = 0; i < dataStreams.size(); i++)
     {
         pocolog_cpp::InputDataStream* stream = dataStreams[i];
-        if(!stream)
-        {
-            std::cerr << "[pocolog2msgpack] Could not open stream #" << i
-                << std::endl;
-            continue;
-        }
+        assert(stream);
 
-        const size_t numSamples = stream->getSize();
         if(verbose >= 1)
-            std::cout << "[pocolog2msgpack] Stream #" << i << ": " << numSamples
+            std::cout << "[pocolog2msgpack] Stream #" << i << ": " << stream->getSize()
                 << " samples" << std::endl;
 
-        const Typelib::Type& type = *stream->getType();
         std::string streamName = stream->getName();
 
         msgpack_pack_str(&pk, streamName.size());
         msgpack_pack_str_body(&pk, streamName.c_str(), streamName.size());
 
-        msgpack_pack_array(&pk, numSamples);
-        for(size_t t = 0; t < numSamples; t++)
-        {
-            std::vector<uint8_t> data;
-            const bool ok = stream->getSampleData(data, t);
-            if(!ok)
-            {
-                std::cerr << "[pocolog2msgpack] Could not read sample data."
-                    << std::endl;
-                return EXIT_FAILURE;
-            }
-
-            if(verbose >= 2)
-                std::cout << "[pocolog2msgpack] Converting column = " << i
-                    << ", t = " << t << std::endl;
-
-            Converter conv(&data[0], pk, size, containerLimit, verbose);
-            conv.apply(type, streamName);
-        }
+        msgpack_pack_array(&pk, stream->getSize());
+        Converter conv(streamName, *stream->getType(), pk, size, containerLimit, verbose);
+        exit_status += convertSamples(conv, stream, verbose);
     }
     fclose(fp);
 
     delete multiIndex;
 
+    return exit_status;
+}
+
+void addValidInputDataStreams(
+    const std::vector<pocolog_cpp::Stream*>& streams,
+    std::vector<pocolog_cpp::InputDataStream*>& dataStreams)
+{
+    dataStreams.reserve(streams.size());
+    for(size_t i = 0; i < streams.size(); i++)
+    {
+        pocolog_cpp::InputDataStream* dataStream =
+            dynamic_cast<pocolog_cpp::InputDataStream*>(streams[i]);
+        if(!dataStream)
+        {
+            std::cerr << "[pocolog2msgpack] Stream #" << i
+                << " is not an InputDataStream, will be ignored!" << std::endl;
+            continue;
+        }
+        dataStreams.push_back(dataStream);
+    }
+}
+
+int convertSamples(Converter& conv, pocolog_cpp::InputDataStream* stream,
+    const int verbose)
+{
+    for(size_t t = 0; t < stream->getSize(); t++)
+    {
+        std::vector<uint8_t> data;
+        const bool ok = stream->getSampleData(data, t);
+        if(!ok)
+        {
+            std::cerr << "[pocolog2msgpack] Could not read sample data."
+                << std::endl;
+            return EXIT_FAILURE;
+        }
+
+        if(verbose >= 2)
+            std::cout << "[pocolog2msgpack] Converting sample #" << t
+                << std::endl;
+        conv.apply(&data[0]);
+    }
     return EXIT_SUCCESS;
+}
+
+Converter::Converter(std::string const& basename, Typelib::Type const& type, msgpack_packer& pk, int size, int containerLimit, int verbose)
+    : data(NULL), type(type), offset(0), part(false), pk(pk), size(size),
+      containerLimit(containerLimit), verbose(verbose), depth(0),
+      indentation(1)
+{
+    fieldName.push_back(basename);
+}
+
+Converter::~Converter()
+{
+    assert(!data);
+}
+
+void Converter::apply(uint8_t* data)
+{
+    assert(data);
+
+    reset();
+    this->data = data;
+    TypeVisitor::apply(type);
+    this->data = NULL;
+}
+
+void Converter::reset()
+{
+    assert(!data);
+    offset = 0;
+    part = false;
+    depth = 0;
 }
 
 bool Converter::visit_(Typelib::OpaqueType const& type)
@@ -378,18 +424,4 @@ bool Converter::visit_(Typelib::Compound const& type, Typelib::Field const& fiel
     depth -= 1;
     fieldName.pop_back();
     return true;
-}
-
-Converter::Converter(uint8_t* data, msgpack_packer& pk, int size, int containerLimit, int verbose)
-    : data(data), offset(0), part(false), pk(pk), size(size),
-      containerLimit(containerLimit), verbose(verbose), depth(0),
-      indentation(1)
-{
-}
-
-void Converter::apply(Typelib::Type const& type, std::string const& basename)
-{
-    fieldName.push_back(basename);
-    TypeVisitor::apply(type);
-    fieldName.pop_back();
 }
