@@ -386,6 +386,7 @@ Converter::Converter(uint8_t* data, msgpack_packer& pk, int size, int containerL
       indentation(1)
 {
 }
+
 void Converter::apply(Typelib::Type const& type, std::string const& basename)
 {
     fieldName.push_back(basename);

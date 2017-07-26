@@ -20,6 +20,12 @@ def test_no_logfile():
     proc.expect(pexpect.EOF)
 
 
+def test_verbose():
+    proc = pexpect.spawn("pocolog2msgpack -v 5")
+    proc.expect("Verbosity level is 5")
+    proc.expect(pexpect.EOF)
+
+
 def test_convert_integers():
     with cleanup("integers.msg"):
         cmd = "pocolog2msgpack -l test/data/integers.0.log -o integers.msg"
