@@ -16,6 +16,9 @@
 void addValidInputDataStreams(
     const std::vector<pocolog_cpp::Stream*>& streams,
     std::vector<pocolog_cpp::InputDataStream*>& dataStreams);
+int convertStreams(
+    msgpack_packer& packer, std::vector<pocolog_cpp::InputDataStream*>& dataStreams,
+    const int size, const int containerLimit, const int verbose);
 int convertSamples(Converter& conv, pocolog_cpp::InputDataStream* stream,
                    const int verbose);
 
@@ -26,7 +29,6 @@ int convert(const std::string& logfile, const std::string& output,
     pocolog_cpp::MultiFileIndex* multiIndex = new pocolog_cpp::MultiFileIndex();
     std::vector<std::string> filenames(1, logfile);
     multiIndex->createIndex(filenames);
-
     std::vector<pocolog_cpp::Stream*> streams = multiIndex->getAllStreams();
     std::vector<pocolog_cpp::InputDataStream*> dataStreams;
     addValidInputDataStreams(streams, dataStreams);
@@ -35,35 +37,16 @@ int convert(const std::string& logfile, const std::string& output,
             << std::endl;
 
     FILE* fp = fopen(output.c_str(), "w");
-    msgpack_packer pk;
-    msgpack_packer_init(&pk, fp, msgpack_fbuffer_write);
 
-    msgpack_pack_map(&pk, dataStreams.size());
-    int exit_status = EXIT_SUCCESS;
-    for(size_t i = 0; i < dataStreams.size(); i++)
-    {
-        pocolog_cpp::InputDataStream* stream = dataStreams[i];
-        assert(stream);
+    msgpack_packer packer;
+    msgpack_packer_init(&packer, fp, msgpack_fbuffer_write);
+    const int exitStatus = convertStreams(
+        packer, dataStreams, size, containerLimit, verbose);
 
-        std::string streamName = stream->getName();
-        if(verbose >= 1)
-            std::cout << "[pocolog2msgpack] Stream #" << i << " ("
-                << streamName << "): " << stream->getSize()
-                << " samples" << std::endl;
-
-        msgpack_pack_str(&pk, streamName.size());
-        msgpack_pack_str_body(&pk, streamName.c_str(), streamName.size());
-
-        msgpack_pack_array(&pk, stream->getSize());
-        Converter conv(streamName, *stream->getType(), pk, size, containerLimit,
-                       verbose);
-        exit_status += convertSamples(conv, stream, verbose);
-    }
     fclose(fp);
-
     delete multiIndex;
 
-    return exit_status;
+    return exitStatus;
 }
 
 void addValidInputDataStreams(
@@ -85,6 +68,36 @@ void addValidInputDataStreams(
     }
 }
 
+int convertStreams(
+    msgpack_packer& packer, std::vector<pocolog_cpp::InputDataStream*>& dataStreams,
+    const int size, const int containerLimit, const int verbose)
+{
+    int exitStatus = EXIT_SUCCESS;
+
+    msgpack_pack_map(&packer, dataStreams.size());
+    for(size_t i = 0; i < dataStreams.size(); i++)
+    {
+        pocolog_cpp::InputDataStream* stream = dataStreams[i];
+        assert(stream);
+        const std::string streamName = stream->getName();
+        if(verbose >= 1)
+            std::cout << "[pocolog2msgpack] Stream #" << i << " ("
+                << streamName << "): " << stream->getSize()
+                << " samples" << std::endl;
+
+        msgpack_pack_str(&packer, streamName.size());
+        msgpack_pack_str_body(&packer, streamName.c_str(), streamName.size());
+
+        msgpack_pack_array(&packer, stream->getSize());
+        Converter conv(streamName, *stream->getType(), packer, size,
+                       containerLimit, verbose);
+
+        exitStatus += convertSamples(conv, stream, verbose);
+    }
+
+    return exitStatus;
+}
+
 int convertSamples(Converter& conv, pocolog_cpp::InputDataStream* stream,
     const int verbose)
 {
@@ -102,7 +115,7 @@ int convertSamples(Converter& conv, pocolog_cpp::InputDataStream* stream,
         if(verbose >= 2)
             std::cout << "[pocolog2msgpack] Converting sample #" << t
                 << std::endl;
-        conv.apply(&data[0]);
+        conv.convertSample(&data[0]);
     }
     return EXIT_SUCCESS;
 }
@@ -120,7 +133,7 @@ Converter::~Converter()
     assert(!data);
 }
 
-void Converter::apply(uint8_t* data)
+void Converter::convertSample(uint8_t* data)
 {
     assert(data);
 
@@ -136,6 +149,12 @@ void Converter::reset()
     offset = 0;
     part = false;
     depth = 0;
+}
+
+void Converter::printBegin()
+{
+    std::cout << "[pocolog2msgpack]"
+        << std::setfill(' ') << std::setw(indentation + depth) << " ";
 }
 
 bool Converter::visit_(Typelib::OpaqueType const& type)
@@ -166,9 +185,10 @@ bool Converter::visit_(Typelib::Numeric const& type)
 unsigned int Converter::getUnsignedInt(Typelib::Numeric const& type, bool part)
 {
     if(!part && verbose >= 3 + depth)
-        std::cout << "[pocolog2msgpack]"
-            << std::setfill(' ') << std::setw(indentation + depth) << " "
-            << "uint" << 8 * type.getSize();
+    {
+        printBegin();
+        std::cout << "uint" << 8 * type.getSize();
+    }
 
     unsigned int i = 0;
     switch(type.getSize())
@@ -212,9 +232,10 @@ unsigned int Converter::getUnsignedInt(Typelib::Numeric const& type, bool part)
 signed int Converter::getSignedInt(Typelib::Numeric const& type, bool part)
 {
     if(!part && verbose >= 3 + depth)
-        std::cout << "[pocolog2msgpack]"
-            << std::setfill(' ') << std::setw(indentation + depth) << " "
-            << "int" << 8 * type.getSize();
+    {
+        printBegin();
+        std::cout << "int" << 8 * type.getSize();
+    }
 
     signed int i = 0;
     switch(type.getSize())
@@ -258,9 +279,10 @@ signed int Converter::getSignedInt(Typelib::Numeric const& type, bool part)
 double Converter::getFloat(Typelib::Numeric const& type, bool part)
 {
     if(!part && verbose >= 3 + depth)
-        std::cout << "[pocolog2msgpack]"
-            << std::setfill(' ') << std::setw(indentation + depth) << " "
-            << "float" << 8 * type.getSize();
+    {
+        printBegin();
+        std::cout << "float" << 8 * type.getSize();
+    }
 
     double i = NAN;
     switch(type.getSize())
@@ -291,10 +313,11 @@ double Converter::getFloat(Typelib::Numeric const& type, bool part)
 
 bool Converter::visit_(Typelib::Enum const&)
 {
-    if(verbose >= 3 + depth)
-        std::cout << "[pocolog2msgpack]"
-            << std::setfill(' ') << std::setw(indentation + depth) << " "
-            << "enum" << std::endl;
+    if(!part && verbose >= 3 + depth)
+    {
+        printBegin();
+        std::cout << "enum" << std::endl;
+    }
 
     return true;
 }
@@ -302,9 +325,10 @@ bool Converter::visit_(Typelib::Enum const&)
 bool Converter::visit_(Typelib::Pointer const& type)
 {
     if(!part && verbose >= 3 + depth)
-        std::cout << "[pocolog2msgpack]"
-            << std::setfill(' ') << std::setw(indentation + depth) << " "
-            << "pointer" << std::endl;
+    {
+        printBegin();
+        std::cout << "pointer" << std::endl;
+    }
 
     depth += 1;
     TypeVisitor::visit_(type);
@@ -317,10 +341,11 @@ bool Converter::visit_(Typelib::Array const& type)
     const size_t numElements = type.getDimension();
     double d[numElements];
 
-    if(verbose >= 3 + depth)
-        std::cout << "[pocolog2msgpack]"
-            << std::setfill(' ') << std::setw(indentation + depth) << " "
-            << "array[" << numElements << "]" << std::endl;
+    if(!part && verbose >= 3 + depth)
+    {
+        printBegin();
+        std::cout << "array[" << numElements << "]" << std::endl;
+    }
 
     msgpack_pack_array(&pk, numElements);
     depth += 1;
@@ -358,10 +383,11 @@ bool Converter::visit_(Typelib::Container const& type)
         numElements = containerLimit;
     }
 
-    if(verbose >= 3 + depth)
-        std::cout << "[pocolog2msgpack]"
-            << std::setfill(' ') << std::setw(indentation + depth) << " "
-            << type.kind() << "[" << numElements << "]" << std::endl;
+    if(!part && verbose >= 3 + depth)
+    {
+        printBegin();
+        std::cout << type.kind() << "[" << numElements << "]" << std::endl;
+    }
 
     if(type.kind() == "/std/string")
     {
@@ -397,10 +423,11 @@ bool Converter::visit_(Typelib::Container const& type)
 
 bool Converter::visit_(Typelib::Compound const& type)
 {
-    if(verbose >= 3 + depth)
-        std::cout << "[pocolog2msgpack]"
-            << std::setfill(' ') << std::setw(indentation + depth) << " "
-            << "compound '" << type.getName() << "'" << std::endl;
+    if(!part && verbose >= 3 + depth)
+    {
+        printBegin();
+        std::cout << "compound '" << type.getName() << "'" << std::endl;
+    }
 
     msgpack_pack_map(&pk, type.getFields().size());
     depth += 1;
@@ -411,10 +438,11 @@ bool Converter::visit_(Typelib::Compound const& type)
 
 bool Converter::visit_(Typelib::Compound const& type, Typelib::Field const& field)
 {
-    if(verbose >= 3 + depth)
-        std::cout << "[pocolog2msgpack]"
-            << std::setfill(' ') << std::setw(indentation + depth) << " "
-            << "field '" << field.getName() << "'" << std::endl;
+    if(!part && verbose >= 3 + depth)
+    {
+        printBegin();
+        std::cout << "field '" << field.getName() << "'" << std::endl;
+    }
 
     msgpack_pack_str(&pk, field.getName().size());
     msgpack_pack_str_body(&pk, field.getName().c_str(), field.getName().size());

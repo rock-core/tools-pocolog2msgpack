@@ -56,7 +56,7 @@ class Converter : public Typelib::TypeVisitor
 public:
     Converter(std::string const& basename, Typelib::Type const& type, msgpack_packer& pk, int size, int containerLimit, int verbose);
     virtual ~Converter();
-    void apply(uint8_t* data);
+    void convertSample(uint8_t* data);
 protected:
     bool visit_(Typelib::OpaqueType const& type);
     bool visit_(Typelib::Numeric const& type);
@@ -73,4 +73,5 @@ protected:
     using TypeVisitor::visit_;
 private:
     void reset();
+    void printBegin();
 };
