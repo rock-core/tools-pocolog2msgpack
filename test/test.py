@@ -67,9 +67,10 @@ def test_convert_metadata():
         log = msgpack.unpack(open(output, "r"))
         assert_in("/messages.messages.meta", log)
         meta = log["/messages.messages.meta"]
-        assert_equal(len(meta), 6)
-        timestamps = [m["timestamp"] for m in meta]
-        assert_true(timestamps[1:] > timestamps[:-1])
+        assert_equal(len(meta), 2)
+        assert_equal(len(meta["timestamps"]), 6)
+        assert_true(meta["timestamps"][1:] > meta["timestamps"][:-1])
+        assert_equal(meta["type"], "/std/string")
 
 
 def test_convert_vector_of_int():

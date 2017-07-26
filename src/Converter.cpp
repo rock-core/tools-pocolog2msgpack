@@ -133,7 +133,8 @@ int convertMetaData(
     const int verbose)
 {
     int exitStatus = EXIT_SUCCESS;
-    const std::string timeKey = "timestamp";
+    const std::string timeKey = "timestamps";
+    const std::string typeKey = "type";
 
     for(size_t i = 0; i < dataStreams.size(); i++)
     {
@@ -146,14 +147,20 @@ int convertMetaData(
         msgpack_pack_str(&packer, key.size());
         msgpack_pack_str_body(&packer, key.c_str(), key.size());
 
+        msgpack_pack_map(&packer, 2);
+
+        msgpack_pack_str(&packer, timeKey.size());
+        msgpack_pack_str_body(&packer, timeKey.c_str(), timeKey.size());
+
         msgpack_pack_array(&packer, stream->getSize());
         for(size_t t = 0; t < stream->getSize(); t++)
-        {
-            msgpack_pack_map(&packer, 1);
-            msgpack_pack_str(&packer, timeKey.size());
-            msgpack_pack_str_body(&packer, timeKey.c_str(), timeKey.size());
             msgpack_pack_int64(&packer, streamIndex.getSampleTime(t).microseconds);
-        }
+
+        msgpack_pack_str(&packer, typeKey.size());
+        msgpack_pack_str_body(&packer, typeKey.c_str(), typeKey.size());
+        const std::string typeName = stream->getType()->getName();
+        msgpack_pack_str(&packer, typeName.size());
+        msgpack_pack_str_body(&packer, typeName.c_str(), typeName.size());
     }
 }
 
