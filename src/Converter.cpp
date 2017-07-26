@@ -17,7 +17,7 @@ void addValidInputDataStreams(
     const std::vector<pocolog_cpp::Stream*>& streams,
     std::vector<pocolog_cpp::InputDataStream*>& dataStreams);
 int convertSamples(Converter& conv, pocolog_cpp::InputDataStream* stream,
-    const int verbose);
+                   const int verbose);
 
 
 int convert(const std::string& logfile, const std::string& output,
@@ -45,17 +45,18 @@ int convert(const std::string& logfile, const std::string& output,
         pocolog_cpp::InputDataStream* stream = dataStreams[i];
         assert(stream);
 
-        if(verbose >= 1)
-            std::cout << "[pocolog2msgpack] Stream #" << i << ": " << stream->getSize()
-                << " samples" << std::endl;
-
         std::string streamName = stream->getName();
+        if(verbose >= 1)
+            std::cout << "[pocolog2msgpack] Stream #" << i << " ("
+                << streamName << "): " << stream->getSize()
+                << " samples" << std::endl;
 
         msgpack_pack_str(&pk, streamName.size());
         msgpack_pack_str_body(&pk, streamName.c_str(), streamName.size());
 
         msgpack_pack_array(&pk, stream->getSize());
-        Converter conv(streamName, *stream->getType(), pk, size, containerLimit, verbose);
+        Converter conv(streamName, *stream->getType(), pk, size, containerLimit,
+                       verbose);
         exit_status += convertSamples(conv, stream, verbose);
     }
     fclose(fp);
