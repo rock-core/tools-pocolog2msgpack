@@ -23,7 +23,9 @@ Why do we need a converter from
 
 ## Install
 
-TODO There is no package set that provides libmsgpack-dev yet.
+TODO This is not the final solution yet. It should be possible to install
+this tool with autoproj but there is no package set that provides
+libmsgpack-dev yet.
 
 Dependencies are
 
@@ -77,3 +79,6 @@ meta data is stored at `"/<task_name>.<port name>.meta"`. The meta data
 contains the timestamp for each sample at the key `"timestamps"` and the
 data type at the key `"type"`. At the moment, we use the type names from
 Typelib.
+
+There are several examples of how to use the tool and how to load data in
+Python in the test folder.
