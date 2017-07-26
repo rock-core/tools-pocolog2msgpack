@@ -2,7 +2,7 @@ import pexpect
 import msgpack
 import os
 from contextlib import contextmanager
-from nose.tools import assert_in, assert_equal
+from nose.tools import assert_in, assert_equal, assert_true
 
 
 @contextmanager
@@ -56,6 +56,20 @@ def test_convert_strings():
         messages = log["/messages.messages"]
         assert_equal(len(messages), 6)
         assert_equal(messages[0], "1337")
+
+
+def test_convert_metadata():
+    output = "strings_metadata.msg"
+    with cleanup(output):
+        cmd = "pocolog2msgpack -l test/data/strings.0.log -o %s" % output
+        proc = pexpect.spawn(cmd)
+        proc.expect(pexpect.EOF)
+        log = msgpack.unpack(open(output, "r"))
+        assert_in("/messages.messages.meta", log)
+        meta = log["/messages.messages.meta"]
+        assert_equal(len(meta), 6)
+        timestamps = [m["timestamp"] for m in meta]
+        assert_true(timestamps[1:] > timestamps[:-1])
 
 
 def test_convert_vector_of_int():

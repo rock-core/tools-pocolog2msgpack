@@ -21,6 +21,9 @@ int convertStreams(
     const int size, const int containerLimit, const int verbose);
 int convertSamples(Converter& conv, pocolog_cpp::InputDataStream* stream,
                    const int verbose);
+int convertMetaData(
+    msgpack_packer& packer, std::vector<pocolog_cpp::InputDataStream*>& dataStreams,
+    const int verbose);
 
 
 int convert(const std::string& logfile, const std::string& output,
@@ -40,8 +43,14 @@ int convert(const std::string& logfile, const std::string& output,
 
     msgpack_packer packer;
     msgpack_packer_init(&packer, fp, msgpack_fbuffer_write);
-    const int exitStatus = convertStreams(
+
+    // We will store both the logdata and its meta data in a map
+    msgpack_pack_map(&packer, 2 * dataStreams.size());
+
+    int exitStatus = convertStreams(
         packer, dataStreams, size, containerLimit, verbose);
+    exitStatus += convertMetaData(
+        packer, dataStreams, verbose);
 
     fclose(fp);
     delete multiIndex;
@@ -74,7 +83,6 @@ int convertStreams(
 {
     int exitStatus = EXIT_SUCCESS;
 
-    msgpack_pack_map(&packer, dataStreams.size());
     for(size_t i = 0; i < dataStreams.size(); i++)
     {
         pocolog_cpp::InputDataStream* stream = dataStreams[i];
@@ -118,6 +126,35 @@ int convertSamples(Converter& conv, pocolog_cpp::InputDataStream* stream,
         conv.convertSample(&data[0]);
     }
     return EXIT_SUCCESS;
+}
+
+int convertMetaData(
+    msgpack_packer& packer, std::vector<pocolog_cpp::InputDataStream*>& dataStreams,
+    const int verbose)
+{
+    int exitStatus = EXIT_SUCCESS;
+    const std::string timeKey = "timestamp";
+
+    for(size_t i = 0; i < dataStreams.size(); i++)
+    {
+        pocolog_cpp::InputDataStream* stream = dataStreams[i];
+        assert(stream);
+        pocolog_cpp::Index& streamIndex = stream->getFileIndex();
+
+        const std::string key = stream->getName() + ".meta";
+
+        msgpack_pack_str(&packer, key.size());
+        msgpack_pack_str_body(&packer, key.c_str(), key.size());
+
+        msgpack_pack_array(&packer, stream->getSize());
+        for(size_t t = 0; t < stream->getSize(); t++)
+        {
+            msgpack_pack_map(&packer, 1);
+            msgpack_pack_str(&packer, timeKey.size());
+            msgpack_pack_str_body(&packer, timeKey.c_str(), timeKey.size());
+            msgpack_pack_int64(&packer, streamIndex.getSampleTime(t).microseconds);
+        }
+    }
 }
 
 Converter::Converter(std::string const& basename, Typelib::Type const& type, msgpack_packer& pk, int size, int containerLimit, int verbose)
