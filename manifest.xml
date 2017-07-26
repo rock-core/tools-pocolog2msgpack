@@ -1,6 +1,6 @@
 <package>
   <description brief="Logfile converter">
-    Converts pocolog to MessagePack.
+    Logfile converter from Rock's pocolog format to MessagePack.
   </description>
   <author>Alexander Fabisch/Alexander.Fabisch@dfki.de</author>
   <license>unknown</license>
