@@ -73,5 +73,7 @@ The object `log` is a Python dictionary that contains names of all logged ports
 as keys and the logged data in a list as its keys.
 
 The logdata itself is stored at the key `"/<task_name>.<port name>"` and
-meta information (e.g. timestamps) is stored at
-`"/<task_name>.<port name>.meta"`.
+meta data is stored at `"/<task_name>.<port name>.meta"`. The meta data
+contains the timestamp for each sample at the key `"timestamps"` and the
+data type at the key `"type"`. At the moment, we use the type names from
+Typelib.
