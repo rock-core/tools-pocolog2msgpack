@@ -132,3 +132,24 @@ def test_convert_rigid_body_state():
         assert_equal(cov_position["data"][6], 0.0)
         assert_equal(cov_position["data"][7], 0.0)
         assert_equal(cov_position["data"][8], 1.0)
+
+
+def test_convert_laser_scan():
+    output = "laser_scan.msg"
+    with cleanup(output):
+        cmd = "pocolog2msgpack -l test/data/laser_scan.0.log -o %s" % output
+        proc = pexpect.spawn(cmd)
+        proc.expect(pexpect.EOF)
+        log = msgpack.unpack(open(output, "r"))
+        assert_in("/message_producer.messages", log)
+        messages = log["/message_producer.messages"]
+        assert_equal(len(messages), 2)
+        scan = messages[0]
+        assert_equal(scan["time"]["microseconds"], 1501161448845619)
+        assert_equal(scan["start_angle"], 0.0)
+        assert_equal(scan["angular_resolution"], 0.1)
+        assert_equal(scan["speed"], 0.1)
+        assert_equal(scan["ranges"][0], 30)
+        assert_equal(scan["ranges"][1], 31)
+        assert_equal(scan["minRange"], 20)
+        assert_equal(scan["maxRange"], 40)
