@@ -155,6 +155,24 @@ def test_convert_laser_scan():
         assert_equal(scan["maxRange"], 40)
 
 
+def test_convert_joint_state():
+    output = "joint_state.msg"
+    with cleanup(output):
+        cmd = "pocolog2msgpack -l test/data/joint_state.0.log -o %s" % output
+        proc = pexpect.spawn(cmd)
+        proc.expect(pexpect.EOF)
+        log = msgpack.unpack(open(output, "r"))
+        assert_in("/message_producer.messages", log)
+        messages = log["/message_producer.messages"]
+        assert_equal(len(messages), 3)
+        joint_state = messages[0]
+        assert_equal(joint_state["position"], 1.0)
+        assert_equal(joint_state["speed"], 2.0)
+        assert_equal(joint_state["effort"], 3.0)
+        assert_equal(joint_state["raw"], 4.0)
+        assert_equal(joint_state["acceleration"], 5.0)
+
+
 def test_convert_multiple_logs():
     output = "multiple_logs.msg"
     with cleanup(output):
