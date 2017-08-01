@@ -13,8 +13,9 @@ int main(int argc, char *argv[])
         ("help,h", "Print help message")
         ("verbose,v", boost::program_options::value<int>()->default_value(0),
             "Verbosity level")
-        ("logfile,l", boost::program_options::value<std::string>(),
-            "Logfile")
+        ("logfile,l",
+            boost::program_options::value<std::vector<std::string> >()->multitoken(),
+            "Logfiles")
         ("output,o", boost::program_options::value<std::string>()->default_value("output.msg"),
             "Output file")
         ("size,s", boost::program_options::value<int>()->default_value(8),
@@ -48,11 +49,11 @@ int main(int argc, char *argv[])
         std::cout << desc << std::endl;
         return EXIT_FAILURE;
     }
-    std::string logfile = vm["logfile"].as<std::string>();
+    std::vector<std::string> logfiles = vm["logfile"].as<std::vector<std::string> >();
     std::string output = vm["output"].as<std::string>();
     const int size = vm["size"].as<int>();
 
     const int containerLimit = vm["container-limit"].as<int>();
 
-    return convert(logfile, output, size, containerLimit, verbose);
+    return convert(logfiles, output, size, containerLimit, verbose);
 }

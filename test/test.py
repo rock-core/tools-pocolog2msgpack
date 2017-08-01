@@ -153,3 +153,15 @@ def test_convert_laser_scan():
         assert_equal(scan["ranges"][1], 31)
         assert_equal(scan["minRange"], 20)
         assert_equal(scan["maxRange"], 40)
+
+
+def test_convert_multiple_logs():
+    output = "multiple_logs.msg"
+    with cleanup(output):
+        logfiles = ["test/data/integers.0.log", "test/data/laser_scan.0.log"]
+        cmd = "pocolog2msgpack -l %s -o %s" % (" ".join(logfiles), output)
+        proc = pexpect.spawn(cmd)
+        proc.expect(pexpect.EOF)
+        log = msgpack.unpack(open(output, "r"))
+        assert_in("/message_producer.messages", log)
+        assert_in("/messages.messages", log)

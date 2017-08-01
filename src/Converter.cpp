@@ -26,12 +26,11 @@ int convertMetaData(
     const int verbose);
 
 
-int convert(const std::string& logfile, const std::string& output,
+int convert(const std::vector<std::string>& logfiles, const std::string& output,
             const int size, const int containerLimit, const int verbose)
 {
     pocolog_cpp::MultiFileIndex* multiIndex = new pocolog_cpp::MultiFileIndex();
-    std::vector<std::string> filenames(1, logfile);
-    multiIndex->createIndex(filenames);
+    multiIndex->createIndex(logfiles);
     std::vector<pocolog_cpp::Stream*> streams = multiIndex->getAllStreams();
     std::vector<pocolog_cpp::InputDataStream*> dataStreams;
     addValidInputDataStreams(streams, dataStreams);
