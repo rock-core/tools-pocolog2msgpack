@@ -23,16 +23,12 @@ Why do we need a converter from
 
 ## Install
 
-TODO This is not the final solution yet. It should be possible to install
-this tool with autoproj but there is no package set that provides
-libmsgpack-dev yet.
-
 Dependencies are
 
 * pocolog_cpp
 * typelib
 * boost
-* libmsgpack-dev
+* [msgpack-c](https://github.com/msgpack/msgpack-c), built from current sources
 
 You can install the dependencies manually and install this tool with
 
@@ -40,6 +36,19 @@ You can install the dependencies manually and install this tool with
     cd build
     cmake -DCMAKE_INSTALL_PREFIX=<install prefix> ..
     make install
+
+The more convenient way is to use autoproj. You must add three lines to
+your manifest:
+
+    package_sets:
+       ...
+       - type: git
+         url: git@git.hb.dfki.de:InFuse/infuse-package_set.git
+
+    layout:
+       ...
+       - tools/pocolog2msgpack
+       ...
 
 ## Usage
 
