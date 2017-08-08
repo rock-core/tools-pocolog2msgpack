@@ -173,6 +173,26 @@ def test_convert_joint_state():
         assert_equal(joint_state["acceleration"], 5.0)
 
 
+def test_convert_joints():
+    output = "joints.msg"
+    with cleanup(output):
+        cmd = "pocolog2msgpack -l test/data/joints.0.log -o %s" % output
+        proc = pexpect.spawn(cmd)
+        proc.expect(pexpect.EOF)
+        log = msgpack.unpack(open(output, "r"))
+        assert_in("/message_producer.messages", log)
+        messages = log["/message_producer.messages"]
+        assert_equal(len(messages), 2)
+        joint_state = messages[0]
+        assert_equal(joint_state["time"]["microseconds"], 1502180215405251)
+        assert_equal(len(joint_state["elements"]), 2)
+        assert_equal(joint_state["elements"][0]["position"], 1.0)
+        assert_equal(joint_state["elements"][1]["position"], 2.0)
+        assert_equal(len(joint_state["names"]), 2)
+        assert_equal(joint_state["names"][0], "j1")
+        assert_equal(joint_state["names"][1], "j2")
+
+
 def test_convert_multiple_logs():
     output = "multiple_logs.msg"
     with cleanup(output):
