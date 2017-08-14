@@ -216,8 +216,16 @@ def test_object2relational():
         cmd = "pocolog2msgpack -l test/data/joints.0.log -o %s" % output
         proc = pexpect.spawn(cmd)
         proc.expect(pexpect.EOF)
-        pocolog2msgpack.object2relational(output, output_relational)
+        pocolog2msgpack.object2relational(
+            output, output_relational, whitelist=["elements", "names"])
         log = msgpack.unpack(open(output_relational, "r"))
-        time = log["/message_producer.messages"]["time.microseconds"]
+        port = log["/message_producer.messages"]
+        time = port["time.microseconds"]
         assert_equal(time[0], 1502180215405251)
         assert_equal(len(time), 2)
+        position0 = port["elements.0.position"]
+        assert_equal(position0[0], 1.0)
+        assert_equal(position0[1], 1.0)
+        name1 = port["names.1"]
+        assert_equal(name1[0], "j2")
+        assert_equal(name1[1], "j2")

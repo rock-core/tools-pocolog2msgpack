@@ -20,10 +20,14 @@ def object2relational(input_filename, output_filename, whitelist=()):
     output_filename : str
         Name of the converted logfile
 
-    whitelist : list
-        List of vectors (lists in Python) that should be recursively scanned.
-        Usually vectors are handled as basic types and put into a single column
-        because they can have dynamic sizes.
+    whitelist : list or tuple
+        Usually arrays and vectors (represented as lists in Python) are handled
+        as basic types and are put in a single column because they can have
+        dynamic sizes. This is a list of fields that will be scanned
+        recursively and interpreted as arrays with a fixed length. Note that
+        you only have to give the name of the field, not the port name.
+        An example would be ["elements", "names"] if you want fully unravel
+        a JointState object.
     """
     with open(input_filename, "r") as f:
         log = msgpack.unpack(f)
@@ -45,10 +49,10 @@ def _extract_keys(sample, whitelist=(), keys=()):
         for k in sample.keys():
             result.extend(_extract_keys(sample[k], whitelist, keys + (k,)))
         return result
-    if isinstance(sample, list) and keys in whitelist:
+    elif isinstance(sample, list) and (".".join(keys) in whitelist):
         result = []
         for i in range(len(sample)):
-            result.extend(_extract_keys(sample[k], whitelist, keys + (str(i),)))
+            result.extend(_extract_keys(sample[i], whitelist, keys + (i,)))
         return result
     else:
         return [keys]
@@ -57,7 +61,7 @@ def _extract_keys(sample, whitelist=(), keys=()):
 def _convert_data(converted_log, log, port_name, all_keys):
     converted_log[port_name] = dict()
     for keys in all_keys:
-        new_key = ".".join(keys)
+        new_key = ".".join(map(str, keys))
         if new_key == "":
             new_key = "data"
         converted_log[port_name][new_key] = []
