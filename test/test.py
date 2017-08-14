@@ -3,6 +3,7 @@ import msgpack
 import os
 from contextlib import contextmanager
 from nose.tools import assert_in, assert_equal, assert_true
+import pocolog2msgpack
 
 
 @contextmanager
@@ -10,8 +11,11 @@ def cleanup(output):
     try:
         yield
     finally:
-        if os.path.exists(output):
-            os.remove(output)
+        if not isinstance(output, list):
+            output = [output]
+        for filename in output:
+            if os.path.exists(filename):
+                os.remove(filename)
 
 
 def test_no_logfile():
@@ -203,3 +207,17 @@ def test_convert_multiple_logs():
         log = msgpack.unpack(open(output, "r"))
         assert_in("/message_producer.messages", log)
         assert_in("/messages.messages", log)
+
+
+def test_object2relational():
+    output = "joints.msg"
+    output_relational = "joints_relational.msg"
+    with cleanup([output, output_relational]):
+        cmd = "pocolog2msgpack -l test/data/joints.0.log -o %s" % output
+        proc = pexpect.spawn(cmd)
+        proc.expect(pexpect.EOF)
+        pocolog2msgpack.object2relational(output, output_relational)
+        log = msgpack.unpack(open(output_relational, "r"))
+        time = log["/message_producer.messages"]["time.microseconds"]
+        assert_equal(time[0], 1502180215405251)
+        assert_equal(len(time), 2)

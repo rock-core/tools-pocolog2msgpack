@@ -9,6 +9,7 @@
   <depend package="typelib" />
   <depend package="boost" />
   <depend package="tools/msgpack-c" />
+  <depend package="python" optional="1" />
   <depend package="python-nose" optional="1" />
   <depend package="python-pexpect" optional="1" />
   <depend package="python-msgpack" optional="1" />

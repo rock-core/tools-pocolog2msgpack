@@ -91,3 +91,19 @@ Typelib.
 
 There are several examples of how to use the tool and how to load data in
 Python in the test folder.
+
+## Conversion to Relational Format
+
+There is an optional Python package 'pocolog2msgpack' that will be implemented
+only if you have Python on your system. It can be used to convert data
+from object-oriented format to a relational format so that you can convert it
+directly to a pandas.DataFrame:
+
+```python
+import msgpack
+import pocolog2msgpack
+pocolog2msgpack.object2relational(logfile, logfile_relational)
+log = msgpack.unpack(open(logfile_relational, "r"))
+df = pd.DataFrame(log[port_name])
+df.set_index("timestamp", inplace=True)  # use the timestamp as an index
+```
