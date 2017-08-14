@@ -102,8 +102,9 @@ directly to a pandas.DataFrame:
 ```python
 import msgpack
 import pocolog2msgpack
+import pandas
 pocolog2msgpack.object2relational(logfile, logfile_relational)
 log = msgpack.unpack(open(logfile_relational, "r"))
-df = pd.DataFrame(log[port_name])
+df = pandas.DataFrame(log[port_name])
 df.set_index("timestamp", inplace=True)  # use the timestamp as an index
 ```
