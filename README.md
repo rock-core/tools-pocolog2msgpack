@@ -108,3 +108,36 @@ log = msgpack.unpack(open(logfile_relational, "r"))
 df = pandas.DataFrame(log[port_name])
 df.set_index("timestamp", inplace=True)  # use the timestamp as an index
 ```
+
+Vectors or arrays will usually not be unravelled automatically even if they
+have the same size in each sample. You have to whitelist them manually, e.g.
+
+```python
+pocolog2msgpack.object2relational(
+    logfile, logfile_relational, whitelist=["elements", "names"])
+```
+
+This will result in unravelled base::samples::Joints object in this case:
+
+```
+{
+    '/message_producer.messages':
+    {
+        'elements.1.position': [2.0, 2.0],
+        'time.microseconds': [1502180215405251, 1502180216405234],
+        'elements.1.raw': [nan, nan],
+        'elements.0.raw': [nan, nan],
+        'timestamp': [1502180215405385, 1502180216405284],
+        'elements.0.acceleration': [nan, nan],
+        'elements.1.speed': [nan, nan],
+        'names.1': ['j2', 'j2'],
+        'elements.1.acceleration': [nan, nan],
+        'names.0': ['j1', 'j1'],
+        'elements.0.speed': [nan, nan],
+        'elements.1.effort': [nan, nan],
+        'elements.0.position': [1.0, 1.0],
+        'type': ['/base/samples/Joints', '/base/samples/Joints'],
+        'elements.0.effort': [nan, nan]
+    }
+}
+```
