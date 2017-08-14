@@ -94,7 +94,7 @@ Python in the test folder.
 
 ## Conversion to Relational Format
 
-There is an optional Python package 'pocolog2msgpack' that will be implemented
+There is an optional Python package 'pocolog2msgpack' that will be installed
 only if you have Python on your system. It can be used to convert data
 from object-oriented format to a relational format so that you can convert it
 directly to a pandas.DataFrame:
