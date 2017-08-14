@@ -1,7 +1,7 @@
 import msgpack
 
 
-def object2relational(input_filename, output_filename):
+def object2relational(input_filename, output_filename, whitelist=()):
     """Convert a MsgPack logfile from object-oriented to relational storage.
 
     The log data produced by pocolog2msgpack can usually be accessed with
@@ -19,6 +19,11 @@ def object2relational(input_filename, output_filename):
 
     output_filename : str
         Name of the converted logfile
+
+    whitelist : list
+        List of vectors (lists in Python) that should be recursively scanned.
+        Usually vectors are handled as basic types and put into a single column
+        because they can have dynamic sizes.
     """
     with open(input_filename, "r") as f:
         log = msgpack.unpack(f)
@@ -27,18 +32,23 @@ def object2relational(input_filename, output_filename):
     for port_name in port_names:
         if len(log[port_name]) == 0:
             continue
-        all_keys = _extract_keys(log[port_name][0])
+        all_keys = _extract_keys(log[port_name][0], whitelist)
         _convert_data(converted_log, log, port_name, all_keys)
         _convert_metadata(converted_log, log, port_name)
     with open(output_filename, "w") as f:
         msgpack.pack(converted_log, f)
 
 
-def _extract_keys(sample, keys=()):
+def _extract_keys(sample, whitelist=(), keys=()):
     if isinstance(sample, dict):
         result = []
         for k in sample.keys():
-            result.extend(_extract_keys(sample[k], keys + (k,)))
+            result.extend(_extract_keys(sample[k], whitelist, keys + (k,)))
+        return result
+    if isinstance(sample, list) and keys in whitelist:
+        result = []
+        for i in range(len(sample)):
+            result.extend(_extract_keys(sample[k], whitelist, keys + (str(i),)))
         return result
     else:
         return [keys]
