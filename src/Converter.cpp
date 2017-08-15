@@ -19,17 +19,18 @@ void addValidInputDataStreams(
     const std::string& only);
 int convertStreams(
     msgpack_packer& packer, std::vector<pocolog_cpp::InputDataStream*>& dataStreams,
-    const int size, const int containerLimit, const int verbose);
+    const int size, const int containerLimit, const int start, const int end,
+    const int verbose);
 int convertSamples(Converter& conv, pocolog_cpp::InputDataStream* stream,
-                   const int verbose);
+                   const int start, const int end, const int verbose);
 int convertMetaData(
     msgpack_packer& packer, std::vector<pocolog_cpp::InputDataStream*>& dataStreams,
-    const int verbose);
+    const int start, const int end, const int verbose);
 
 
 int convert(const std::vector<std::string>& logfiles, const std::string& output,
             const int size, const int containerLimit, const std::string& only,
-            const int verbose)
+            const int start, const int end, const int verbose)
 {
     pocolog_cpp::MultiFileIndex* multiIndex = new pocolog_cpp::MultiFileIndex();
     multiIndex->createIndex(logfiles);
@@ -49,9 +50,9 @@ int convert(const std::vector<std::string>& logfiles, const std::string& output,
     msgpack_pack_map(&packer, 2 * dataStreams.size());
 
     int exitStatus = convertStreams(
-        packer, dataStreams, size, containerLimit, verbose);
+        packer, dataStreams, size, containerLimit, start, end, verbose);
     exitStatus += convertMetaData(
-        packer, dataStreams, verbose);
+        packer, dataStreams, start, end, verbose);
 
     fclose(fp);
     delete multiIndex;
@@ -87,9 +88,11 @@ void addValidInputDataStreams(
 
 int convertStreams(
     msgpack_packer& packer, std::vector<pocolog_cpp::InputDataStream*>& dataStreams,
-    const int size, const int containerLimit, const int verbose)
+    const int size, const int containerLimit, const int start, const int end,
+    const int verbose)
 {
     int exitStatus = EXIT_SUCCESS;
+    const bool sliceOutput = dataStreams.size() == 1;
 
     for(size_t i = 0; i < dataStreams.size(); i++)
     {
@@ -101,23 +104,26 @@ int convertStreams(
                 << streamName << "): " << stream->getSize()
                 << " samples" << std::endl;
 
+        const int realEnd = end < 0 ? stream->getSize() : end;
+        const int exportedSize = realEnd - start;
+
         msgpack_pack_str(&packer, streamName.size());
         msgpack_pack_str_body(&packer, streamName.c_str(), streamName.size());
 
-        msgpack_pack_array(&packer, stream->getSize());
+        msgpack_pack_array(&packer, exportedSize);
         Converter conv(streamName, *stream->getType(), packer, size,
                        containerLimit, verbose);
 
-        exitStatus += convertSamples(conv, stream, verbose);
+        exitStatus += convertSamples(conv, stream, start, realEnd, verbose);
     }
 
     return exitStatus;
 }
 
 int convertSamples(Converter& conv, pocolog_cpp::InputDataStream* stream,
-    const int verbose)
+    const int start, const int end, const int verbose)
 {
-    for(size_t t = 0; t < stream->getSize(); t++)
+    for(size_t t = start; t < end; t++)
     {
         std::vector<uint8_t> data;
         const bool ok = stream->getSampleData(data, t);
@@ -138,7 +144,7 @@ int convertSamples(Converter& conv, pocolog_cpp::InputDataStream* stream,
 
 int convertMetaData(
     msgpack_packer& packer, std::vector<pocolog_cpp::InputDataStream*>& dataStreams,
-    const int verbose)
+    const int start, const int end, const int verbose)
 {
     int exitStatus = EXIT_SUCCESS;
     const std::string timeKey = "timestamps";
@@ -160,8 +166,10 @@ int convertMetaData(
         msgpack_pack_str(&packer, timeKey.size());
         msgpack_pack_str_body(&packer, timeKey.c_str(), timeKey.size());
 
-        msgpack_pack_array(&packer, stream->getSize());
-        for(size_t t = 0; t < stream->getSize(); t++)
+        const int realEnd = end < 0 ? dataStreams[i]->getSize() : end;
+        const int exportedSize = realEnd - start;
+        msgpack_pack_array(&packer, exportedSize);
+        for(size_t t = start; t < realEnd; t++)
             msgpack_pack_int64(&packer, streamIndex.getSampleTime(t).microseconds);
 
         msgpack_pack_str(&packer, typeKey.size());

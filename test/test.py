@@ -31,7 +31,7 @@ def test_help():
 
 
 def test_verbose():
-    proc = pexpect.spawn("pocolog2msgpack -v 5")
+    proc = pexpect.spawn("pocolog2msgpack -v 5 -l test/data/integers.0.log")
     proc.expect("Verbosity level is 5")
     proc.expect(pexpect.EOF)
 
@@ -77,20 +77,6 @@ def test_convert_metadata():
         assert_equal(meta["type"], "/std/string")
 
 
-def test_only_one_port():
-    output = "vector_int.msg"
-    with cleanup(output):
-        port = "/message_producer.messages"
-        cmd = ("pocolog2msgpack -l test/data/vector_int.0.log -o %s "
-               "--only %s") % (output, port)
-        proc = pexpect.spawn(cmd)
-        proc.expect(pexpect.EOF)
-        log = msgpack.unpack(open(output, "r"))
-        assert_equal(len(log), 2)
-        assert_in(port, log)
-        assert_in(port + ".meta", log)
-
-
 def test_convert_vector_of_int():
     output = "vector_int.msg"
     with cleanup(output):
@@ -105,6 +91,33 @@ def test_convert_vector_of_int():
         assert_equal(messages[0][0], 132)
         assert_equal(messages[0][1], 2054829)
         assert_equal(messages[0][2], -233235)
+
+
+def test_only_one_port():
+    output = "vector_int.msg"
+    with cleanup(output):
+        port = "/message_producer.messages"
+        cmd = ("pocolog2msgpack -l test/data/vector_int.0.log -o %s "
+               "--only %s") % (output, port)
+        proc = pexpect.spawn(cmd)
+        proc.expect(pexpect.EOF)
+        log = msgpack.unpack(open(output, "r"))
+        assert_equal(len(log), 2)
+        assert_in(port, log)
+        assert_in(port + ".meta", log)
+
+
+def test_slice():
+    output = "vector_int.msg"
+    with cleanup(output):
+        port = "/message_producer.messages"
+        cmd = ("pocolog2msgpack -l test/data/vector_int.0.log -o %s "
+               "--only %s --start 1 --end 2") % (output, port)
+        proc = pexpect.spawn(cmd)
+        proc.expect(pexpect.EOF)
+        log = msgpack.unpack(open(output, "r"))
+        assert_equal(len(log[port]), 1)
+        assert_equal(log[port + ".meta"]["timestamps"][0], 1500996133689733)
 
 
 def test_convert_vector_of_str():

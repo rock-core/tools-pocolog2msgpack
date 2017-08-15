@@ -59,7 +59,7 @@ formats. It is called `pocolog2msgpack`. These are its options:
 Options:
   -h [ --help ]                         Print help message
   -v [ --verbose ] arg (=0)             Verbosity level
-  -l [ --logfile ] arg                  Logfile
+  -l [ --logfile ] arg                  Logfiles
   -o [ --output ] arg (=output.msg)     Output file
   -s [ --size ] arg (=8)                Length of the size type. This should be
                                         8 for most machines, but it can be 1, 
@@ -69,6 +69,14 @@ Options:
                                         be used if you have old logfiles from 
                                         which we can't read the container size 
                                         properly.
+  --only arg                            Only convert the port given by this 
+                                        argument.
+  --start arg (=0)                      Index of the first sample that will be 
+                                        exported. This option is only valid if 
+                                        only one stream will be exported.
+  --end arg (=-1)                       Index after the last sample that will 
+                                        be exported. This option is only valid 
+                                        if only one stream will be exported.
 ```
 
 ## Loading Logs in Python

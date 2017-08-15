@@ -12,12 +12,14 @@
  * @param size size of the size type for containers in the logfile
  * @param containerLimit maximum lenght of a container that will be converted
  * @param only only convert the port given by this argument
+ * @param start index of the first sample that will be exported
+ * @param end index after the last sample that will be exported
  * @param verbose verbosity level
  * @return exit status of the program
  */
 int convert(const std::vector<std::string>& logfiles, const std::string& output,
             const int size, const int containerLimit, const std::string& only,
-            const int verbose);
+            const int start, const int end, const int verbose);
 
 
 /**
