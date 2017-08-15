@@ -80,7 +80,7 @@ void addValidInputDataStreams(
         }
         dataStreams.push_back(dataStream);
     }
-    if(only != "" && streams.size() == 0)
+    if(only != "" && dataStreams.size() == 0)
         std::cerr << "[pocolog2msgpack] Did not find the stream '" << only
             << "'." << std::endl;
 }
@@ -433,6 +433,12 @@ bool Converter::visit_(Typelib::Container const& type)
             << "truncating " << type.kind() << "! (" << numElements << " > "
             << containerLimit << ")" << std::endl;
         numElements = containerLimit;
+    }
+
+    if(numElements == 0)
+    {
+        msgpack_pack_nil(&pk);
+        return true;
     }
 
     if(!part && verbose >= 3 + depth)
