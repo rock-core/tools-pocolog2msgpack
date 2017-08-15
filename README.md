@@ -106,7 +106,10 @@ import pandas
 pocolog2msgpack.object2relational(logfile, logfile_relational)
 log = msgpack.unpack(open(logfile_relational, "r"))
 df = pandas.DataFrame(log[port_name])
-df.set_index("timestamp", inplace=True)  # use the timestamp as an index
+# use the timestamp as an index:
+df.set_index("timestamp", inplace=True)
+# order columns alphabetically:
+df.reindex_axis(sorted(df.columns), axis=1, copy=False)
 ```
 
 Vectors or arrays will usually not be unravelled automatically even if they
