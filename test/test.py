@@ -77,6 +77,20 @@ def test_convert_metadata():
         assert_equal(meta["type"], "/std/string")
 
 
+def test_only_one_port():
+    output = "vector_int.msg"
+    with cleanup(output):
+        port = "/message_producer.messages"
+        cmd = ("pocolog2msgpack -l test/data/vector_int.0.log -o %s "
+               "--only %s") % (output, port)
+        proc = pexpect.spawn(cmd)
+        proc.expect(pexpect.EOF)
+        log = msgpack.unpack(open(output, "r"))
+        assert_equal(len(log), 2)
+        assert_in(port, log)
+        assert_in(port + ".meta", log)
+
+
 def test_convert_vector_of_int():
     output = "vector_int.msg"
     with cleanup(output):
@@ -84,6 +98,7 @@ def test_convert_vector_of_int():
         proc = pexpect.spawn(cmd)
         proc.expect(pexpect.EOF)
         log = msgpack.unpack(open(output, "r"))
+        assert_equal(len(log), 4)
         assert_in("/message_producer.messages", log)
         messages = log["/message_producer.messages"]
         assert_equal(len(messages), 5)

@@ -1,5 +1,7 @@
 #include "Converter.hpp"
 #include <iostream>
+#include <string>
+#include <vector>
 #include <boost/program_options.hpp>
 
 
@@ -25,6 +27,8 @@ int main(int argc, char *argv[])
             "Maximum lenght of a container that will be converted. This option "
             "should only be used if you have old logfiles from which we can't "
             "read the container size properly.")
+        ("only", boost::program_options::value<std::string>()->default_value(""),
+            "Only convert the port given by this argument.")
     ;
     po::variables_map vm;
     po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -49,11 +53,14 @@ int main(int argc, char *argv[])
         std::cout << desc << std::endl;
         return EXIT_FAILURE;
     }
-    std::vector<std::string> logfiles = vm["logfile"].as<std::vector<std::string> >();
-    std::string output = vm["output"].as<std::string>();
+    const std::vector<std::string> logfiles = vm["logfile"].as<std::vector<std::string> >();
+    const std::string output = vm["output"].as<std::string>();
     const int size = vm["size"].as<int>();
-
     const int containerLimit = vm["container-limit"].as<int>();
+    const std::string only = vm["only"].as<std::string>();
+    if(only != "")
+        std::cout << "[pocolog2msgpack] Only converting port '" << only
+            << "'." << std::endl;
 
-    return convert(logfiles, output, size, containerLimit, verbose);
+    return convert(logfiles, output, size, containerLimit, only, verbose);
 }
