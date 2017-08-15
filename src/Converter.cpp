@@ -371,13 +371,20 @@ double Converter::getFloat(Typelib::Numeric const& type, bool part)
     return i;
 }
 
-bool Converter::visit_(Typelib::Enum const&)
+bool Converter::visit_(Typelib::Enum const& e)
 {
     if(!part && verbose >= 3 + depth)
     {
         printBegin();
         std::cout << "enum" << std::endl;
     }
+
+    int16_t intValue = *reinterpret_cast<int16_t*>(data + offset);
+    offset += 2;  // TODO how do we now that it is always int16?
+    std::string value = e.get(intValue);
+
+    msgpack_pack_str(&pk, value.size());
+    msgpack_pack_str_body(&pk, value.c_str(), value.size());
 
     return true;
 }
@@ -441,12 +448,6 @@ bool Converter::visit_(Typelib::Container const& type)
             << "truncating " << type.kind() << "! (" << numElements << " > "
             << containerLimit << ")" << std::endl;
         numElements = containerLimit;
-    }
-
-    if(numElements == 0)
-    {
-        msgpack_pack_nil(&pk);
-        return true;
     }
 
     if(!part && verbose >= 3 + depth)
