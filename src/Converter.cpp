@@ -381,10 +381,19 @@ bool Converter::visit_(Typelib::Enum const& e)
 
     int16_t intValue = *reinterpret_cast<int16_t*>(data + offset);
     offset += 2;  // TODO how do we now that it is always int16?
-    std::string value = e.get(intValue);
+    try
+    {
+        std::string value = e.get(intValue);
 
-    msgpack_pack_str(&pk, value.size());
-    msgpack_pack_str_body(&pk, value.c_str(), value.size());
+        msgpack_pack_str(&pk, value.size());
+        msgpack_pack_str_body(&pk, value.c_str(), value.size());
+    }
+    catch(Typelib::Enum::ValueNotFound& e)
+    {
+        msgpack_pack_int16(&pk, intValue);
+        std::cerr << "[pocolog2msgpack] Could not find a string representation "
+            << "for enum value " << intValue << "." << std::endl;
+    }
 
     return true;
 }
