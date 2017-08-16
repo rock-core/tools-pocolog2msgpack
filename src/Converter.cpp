@@ -379,8 +379,9 @@ bool Converter::visit_(Typelib::Enum const& e)
         std::cout << "enum" << std::endl;
     }
 
-    int16_t intValue = *reinterpret_cast<int16_t*>(data + offset);
-    offset += 2;  // TODO how do we now that it is always int16?
+    Typelib::Enum::integral_type intValue =
+        *reinterpret_cast<Typelib::Enum::integral_type*>(data + offset);
+    offset += sizeof(Typelib::Enum::integral_type);
     try
     {
         std::string value = e.get(intValue);

@@ -237,7 +237,7 @@ def test_convert_depth_map():
         assert_equal(len(messages), 2)
         depth_map = messages[0]
         assert_equal(depth_map["vertical_projection"], "POLAR")
-        assert_equal(depth_map["horizontal_projection"], "POLAR")
+        assert_equal(depth_map["horizontal_projection"], "PLANAR")
 
 
 def test_convert_multiple_logs():
