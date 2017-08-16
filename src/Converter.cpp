@@ -429,17 +429,24 @@ bool Converter::visit_(Typelib::Container const& type)
 {
     // TODO Is there a way to determine 'size' automatically?
     size_t numElements;
-    if(size == 1)
+    switch(size)
+    {
+    case 1:
         numElements = *reinterpret_cast<uint8_t*>(data + offset);
-    else if(size == 2)
+        break;
+    case 2:
         numElements = *reinterpret_cast<uint16_t*>(data + offset);
-    else if(size == 4)
+        break;
+    case 4:
         numElements = *reinterpret_cast<uint32_t*>(data + offset);
-    else if(size == 8)
+        break;
+    case 8:
         numElements = *reinterpret_cast<uint64_t*>(data + offset);
-    else
+        break;
+    default:
         throw std::runtime_error(
             "Unknown size type size, should be one of 1, 2, 4, 8");
+    }
     offset += size;
 
     if(numElements > containerLimit)

@@ -225,6 +225,21 @@ def test_convert_joints():
         assert_equal(joint_state["names"][1], "j2")
 
 
+def test_convert_depth_map():
+    output = "depth_map.msg"
+    with cleanup(output):
+        cmd = "pocolog2msgpack -l test/data/depth_map.0.log -o %s" % output
+        proc = pexpect.spawn(cmd)
+        proc.expect(pexpect.EOF)
+        log = msgpack.unpack(open(output, "r"))
+        assert_in("/message_producer.messages", log)
+        messages = log["/message_producer.messages"]
+        assert_equal(len(messages), 2)
+        depth_map = messages[0]
+        assert_equal(depth_map["vertical_projection"], "POLAR")
+        assert_equal(depth_map["horizontal_projection"], "POLAR")
+
+
 def test_convert_multiple_logs():
     output = "multiple_logs.msg"
     with cleanup(output):
