@@ -42,7 +42,7 @@ def test_convert_integers():
         cmd = "pocolog2msgpack -l test/data/integers.0.log -o %s" % output
         proc = pexpect.spawn(cmd)
         proc.expect(pexpect.EOF)
-        log = msgpack.unpack(open(output, "r"))
+        log = msgpack.unpack(open(output, "rb"), encoding="utf8")
         assert_in("/messages.messages", log)
         messages = log["/messages.messages"]
         assert_equal(len(messages), 5)
@@ -55,7 +55,7 @@ def test_convert_strings():
         cmd = "pocolog2msgpack -l test/data/strings.0.log -o %s" % output
         proc = pexpect.spawn(cmd)
         proc.expect(pexpect.EOF)
-        log = msgpack.unpack(open(output, "r"))
+        log = msgpack.unpack(open(output, "rb"), encoding="utf8")
         assert_in("/messages.messages", log)
         messages = log["/messages.messages"]
         assert_equal(len(messages), 6)
@@ -68,7 +68,7 @@ def test_convert_metadata():
         cmd = "pocolog2msgpack -l test/data/strings.0.log -o %s" % output
         proc = pexpect.spawn(cmd)
         proc.expect(pexpect.EOF)
-        log = msgpack.unpack(open(output, "r"))
+        log = msgpack.unpack(open(output, "rb"), encoding="utf8")
         assert_in("/messages.messages.meta", log)
         meta = log["/messages.messages.meta"]
         assert_equal(len(meta), 2)
@@ -83,7 +83,7 @@ def test_convert_vector_of_int():
         cmd = "pocolog2msgpack -l test/data/vector_int.0.log -o %s" % output
         proc = pexpect.spawn(cmd)
         proc.expect(pexpect.EOF)
-        log = msgpack.unpack(open(output, "r"))
+        log = msgpack.unpack(open(output, "rb"), encoding="utf8")
         assert_equal(len(log), 4)
         assert_in("/message_producer.messages", log)
         messages = log["/message_producer.messages"]
@@ -101,7 +101,7 @@ def test_only_one_port():
                "--only %s") % (output, port)
         proc = pexpect.spawn(cmd)
         proc.expect(pexpect.EOF)
-        log = msgpack.unpack(open(output, "r"))
+        log = msgpack.unpack(open(output, "rb"), encoding="utf8")
         assert_equal(len(log), 2)
         assert_in(port, log)
         assert_in(port + ".meta", log)
@@ -115,7 +115,7 @@ def test_slice():
                "--only %s --start 1 --end 2") % (output, port)
         proc = pexpect.spawn(cmd)
         proc.expect(pexpect.EOF)
-        log = msgpack.unpack(open(output, "r"))
+        log = msgpack.unpack(open(output, "rb"), encoding="utf8")
         assert_equal(len(log[port]), 1)
         assert_equal(log[port + ".meta"]["timestamps"][0], 1500996133689733)
 
@@ -126,7 +126,7 @@ def test_convert_vector_of_str():
         cmd = "pocolog2msgpack -l test/data/vector_string.0.log -o %s" % output
         proc = pexpect.spawn(cmd)
         proc.expect(pexpect.EOF)
-        log = msgpack.unpack(open(output, "r"))
+        log = msgpack.unpack(open(output, "rb"), encoding="utf8")
         assert_in("/message_producer.messages", log)
         messages = log["/message_producer.messages"]
         assert_equal(len(messages), 5)
@@ -140,7 +140,7 @@ def test_convert_rigid_body_state():
         cmd = "pocolog2msgpack -l test/data/rigid_body_state.0.log -o %s" % output
         proc = pexpect.spawn(cmd)
         proc.expect(pexpect.EOF)
-        log = msgpack.unpack(open(output, "r"))
+        log = msgpack.unpack(open(output, "rb"), encoding="utf8")
         assert_in("/message_producer.messages", log)
         messages = log["/message_producer.messages"]
         assert_equal(len(messages), 2)
@@ -172,7 +172,7 @@ def test_convert_laser_scan():
         cmd = "pocolog2msgpack -l test/data/laser_scan.0.log -o %s" % output
         proc = pexpect.spawn(cmd)
         proc.expect(pexpect.EOF)
-        log = msgpack.unpack(open(output, "r"))
+        log = msgpack.unpack(open(output, "rb"), encoding="utf8")
         assert_in("/message_producer.messages", log)
         messages = log["/message_producer.messages"]
         assert_equal(len(messages), 2)
@@ -193,7 +193,7 @@ def test_convert_joint_state():
         cmd = "pocolog2msgpack -l test/data/joint_state.0.log -o %s" % output
         proc = pexpect.spawn(cmd)
         proc.expect(pexpect.EOF)
-        log = msgpack.unpack(open(output, "r"))
+        log = msgpack.unpack(open(output, "rb"), encoding="utf8")
         assert_in("/message_producer.messages", log)
         messages = log["/message_producer.messages"]
         assert_equal(len(messages), 3)
@@ -211,7 +211,7 @@ def test_convert_joints():
         cmd = "pocolog2msgpack -l test/data/joints.0.log -o %s" % output
         proc = pexpect.spawn(cmd)
         proc.expect(pexpect.EOF)
-        log = msgpack.unpack(open(output, "r"))
+        log = msgpack.unpack(open(output, "rb"), encoding="utf8")
         assert_in("/message_producer.messages", log)
         messages = log["/message_producer.messages"]
         assert_equal(len(messages), 2)
@@ -231,7 +231,7 @@ def test_convert_depth_map():
         cmd = "pocolog2msgpack -l test/data/depth_map.0.log -o %s" % output
         proc = pexpect.spawn(cmd)
         proc.expect(pexpect.EOF)
-        log = msgpack.unpack(open(output, "r"))
+        log = msgpack.unpack(open(output, "rb"), encoding="utf8")
         assert_in("/message_producer.messages", log)
         messages = log["/message_producer.messages"]
         assert_equal(len(messages), 2)
@@ -247,7 +247,7 @@ def test_convert_multiple_logs():
         cmd = "pocolog2msgpack -l %s -o %s" % (" ".join(logfiles), output)
         proc = pexpect.spawn(cmd)
         proc.expect(pexpect.EOF)
-        log = msgpack.unpack(open(output, "r"))
+        log = msgpack.unpack(open(output, "rb"), encoding="utf8")
         assert_in("/message_producer.messages", log)
         assert_in("/messages.messages", log)
 
@@ -261,7 +261,7 @@ def test_object2relational():
         proc.expect(pexpect.EOF)
         pocolog2msgpack.object2relational(
             output, output_relational, whitelist=["elements", "names"])
-        log = msgpack.unpack(open(output_relational, "r"))
+        log = msgpack.unpack(open(output_relational, "rb"), encoding="utf8")
         port = log["/message_producer.messages"]
         time = port["time.microseconds"]
         assert_equal(time[0], 1502180215405251)

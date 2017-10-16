@@ -29,8 +29,8 @@ def object2relational(input_filename, output_filename, whitelist=()):
         An example would be ["elements", "names"] if you want fully unravel
         a JointState object.
     """
-    with open(input_filename, "r") as f:
-        log = msgpack.unpack(f)
+    with open(input_filename, "rb") as f:
+        log = msgpack.unpack(f, encoding="utf8")
     port_names = [k for k in log.keys() if not k.endswith(".meta")]
     converted_log = dict()
     for port_name in port_names:
@@ -39,7 +39,7 @@ def object2relational(input_filename, output_filename, whitelist=()):
         all_keys = _extract_keys(log[port_name][0], whitelist)
         _convert_data(converted_log, log, port_name, all_keys)
         _convert_metadata(converted_log, log, port_name)
-    with open(output_filename, "w") as f:
+    with open(output_filename, "wb") as f:
         msgpack.pack(converted_log, f)
 
 
