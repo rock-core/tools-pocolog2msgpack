@@ -85,7 +85,7 @@ Loading the converted logfiles in Python is as simple as those two lines:
 
 ```python
 import msgpack
-log = msgpack.unpack(open("output.msg", "r"))
+log = msgpack.unpack(open("output.msg", "rb"), encoding="utf8")
 ```
 
 The object `log` is a Python dictionary that contains names of all logged ports
@@ -112,7 +112,7 @@ import msgpack
 import pocolog2msgpack
 import pandas
 pocolog2msgpack.object2relational(logfile, logfile_relational)
-log = msgpack.unpack(open(logfile_relational, "r"))
+log = msgpack.unpack(open(logfile_relational, "rb"), encoding="utf8")
 df = pandas.DataFrame(log[port_name])
 # use the timestamp as an index:
 df.set_index("timestamp", inplace=True)
