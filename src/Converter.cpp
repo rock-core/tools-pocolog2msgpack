@@ -86,6 +86,24 @@ void addValidInputDataStreams(
             << "'." << std::endl;
 }
 
+const int computeRangeEnd(const int userStart, const int userEnd,
+                          const int streamLength, const bool printWarning)
+{
+    int realEnd = userEnd < 0 ? streamLength : userEnd;
+    if(streamLength < userEnd)
+    {
+        if(printWarning)
+        {
+            std::cerr << "[pocolog2msgpack] Requested samples [" << userStart
+                << ", " << userEnd << "). This stream only has "
+                << streamLength << " samples. Range will be cut to ["
+                << userStart << ", " << streamLength << ")" << std::endl;
+        }
+        realEnd = streamLength;
+    }
+    return realEnd;
+}
+
 int convertStreams(
     msgpack_packer& packer, std::vector<pocolog_cpp::InputDataStream*>& dataStreams,
     const int size, const int containerLimit, const int start, const int end,
@@ -104,7 +122,7 @@ int convertStreams(
                 << streamName << "): " << stream->getSize()
                 << " samples" << std::endl;
 
-        const int realEnd = end < 0 ? stream->getSize() : end;
+        const int realEnd = computeRangeEnd(start, end, stream->getSize(), true);
         const int exportedSize = realEnd - start;
 
         msgpack_pack_str(&packer, streamName.size());
@@ -123,14 +141,6 @@ int convertStreams(
 int convertSamples(Converter& conv, pocolog_cpp::InputDataStream* stream,
     const int start, const int end, const int verbose)
 {
-    if(stream->getSize() < end)
-    {
-        std::cerr << "[pocolog2msgpack] ERROR: Requested samples [" << start
-            << ", " << end << "). This stream only has " << stream->getSize()
-            << " samples." << std::endl;
-        return EXIT_FAILURE;
-    }
-
     for(size_t t = start; t < end; t++)
     {
         std::vector<uint8_t> data;
@@ -174,7 +184,7 @@ int convertMetaData(
         msgpack_pack_str(&packer, timeKey.size());
         msgpack_pack_str_body(&packer, timeKey.c_str(), timeKey.size());
 
-        const int realEnd = end < 0 ? dataStreams[i]->getSize() : end;
+        const int realEnd = computeRangeEnd(start, end, stream->getSize(), false);
         const int exportedSize = realEnd - start;
         msgpack_pack_array(&packer, exportedSize);
         for(size_t t = start; t < realEnd; t++)
