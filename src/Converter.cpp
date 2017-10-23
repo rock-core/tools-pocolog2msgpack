@@ -123,13 +123,21 @@ int convertStreams(
 int convertSamples(Converter& conv, pocolog_cpp::InputDataStream* stream,
     const int start, const int end, const int verbose)
 {
+    if(stream->getSize() < end)
+    {
+        std::cerr << "[pocolog2msgpack] ERROR: Requested samples [" << start
+            << ", " << end << "). This stream only has " << stream->getSize()
+            << " samples." << std::endl;
+        return EXIT_FAILURE;
+    }
+
     for(size_t t = start; t < end; t++)
     {
         std::vector<uint8_t> data;
         const bool ok = stream->getSampleData(data, t);
         if(!ok)
         {
-            std::cerr << "[pocolog2msgpack] Could not read sample data."
+            std::cerr << "[pocolog2msgpack] ERROR: Could not read sample data."
                 << std::endl;
             return EXIT_FAILURE;
         }
