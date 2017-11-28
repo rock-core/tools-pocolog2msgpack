@@ -248,7 +248,7 @@ bool Converter::visit_(Typelib::Numeric const& type)
         lastNumber = getSignedInt(type, part);
         break;
     case Typelib::Numeric::UInt:
-        lastNumber = getUnsignedInt(type, part);
+        lastNumber = getUnsignedInt(type, part); // FIXME bug
         break;
     case Typelib::Numeric::Float:
         lastFloat = getFloat(type, part);
@@ -479,10 +479,54 @@ bool Converter::visit_(Typelib::Container const& type)
 
     if(numElements > containerLimit)
     {
-        std::cerr << "[pocolog2msgpack] WARNING: container limit exceeded, "
-            << "truncating " << type.kind() << "! (" << numElements << " > "
-            << containerLimit << ")" << std::endl;
-        numElements = containerLimit;
+        // HACK Sometimes we are starting at the wrong offset, we have to
+        //      ignore some padding bytes... Don't try this at home!
+        size_t paddingOffset = 0;
+        const size_t MAXIMUM_ALLOWED_PADDING = 7;
+        for(paddingOffset = 0; paddingOffset <= MAXIMUM_ALLOWED_PADDING;
+            paddingOffset++)
+        {
+            if(*(data + offset - size + paddingOffset) != 0)
+                break;
+        }
+        size_t paddedNumElements = 0;
+        switch(size)  // TODO refactor
+        {
+        case 1:
+            paddedNumElements = *reinterpret_cast<uint8_t*>(
+                data + offset - size + paddingOffset);
+            break;
+        case 2:
+            paddedNumElements = *reinterpret_cast<uint16_t*>(
+                data + offset - size + paddingOffset);
+            break;
+        case 4:
+            paddedNumElements = *reinterpret_cast<uint32_t*>(
+                data + offset - size + paddingOffset);
+            break;
+        case 8:
+            paddedNumElements = *reinterpret_cast<uint64_t*>(
+                data + offset - size + paddingOffset);
+            break;
+        default:
+            throw std::runtime_error(
+                "Unknown size type size, should be one of 1, 2, 4, 8");
+        }
+        bool padded = paddedNumElements < containerLimit;
+        std::cerr << "[pocolog2msgpack] WARNING: container limit exceeded, ";
+        if(padded)
+        {
+            numElements = paddedNumElements;
+            offset += paddingOffset;
+            std::cerr << "ignoring " << paddingOffset << " padding bytes"
+                << std::endl;
+        }
+        else
+        {
+            numElements = containerLimit;
+            std::cerr << "truncating " << type.kind() << "! (" << numElements
+                << " > " << containerLimit << ")" << std::endl;
+        }
     }
 
     if(!part && verbose >= 3 + depth)
