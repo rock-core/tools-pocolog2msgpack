@@ -4,7 +4,7 @@ software_catalogue_entry:
   script:
   - apt update
   - apt install -y wget
-  - wget http://buildsrv01/software_overview/generate.sh
+  - wget http://bob/software_overview/generate.sh
   - sh generate.sh $CI_PROJECT_NAMESPACE $CI_PROJECT_NAME $CI_PROJECT_URL
   only:
   - master
