@@ -4,6 +4,8 @@
   </description>
   <author>Alexander Fabisch/Alexander.Fabisch@dfki.de</author>
   <license>unknown</license>
+  <url>https://git.hb.dfki.de/InFuse/pocolog2msgpack</url>
+  <logo>none</logo>
 
   <depend package="tools/pocolog_cpp" />
   <depend package="typelib" />
@@ -13,4 +15,16 @@
   <depend package="python-nose" optional="1" />
   <depend package="python-pexpect" optional="1" />
   <depend package="python-msgpack" optional="1" />
+
+  <keywords>
+    <keyword>Utilities</keyword>
+  </keywords>
+  <stage>0</stage>
+  <use>multi project</use>
+  <activity>active</activity>
+  <classifiers>
+    <classifier>c++</classifier>
+    <classifier>rock</classifier>
+    <classifier>ubuntu</classifier>
+  </classifiers>
 </package>
