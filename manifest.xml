@@ -3,6 +3,7 @@
     Logfile converter from Rock's pocolog format to MessagePack.
   </description>
   <author>Alexander Fabisch/Alexander.Fabisch@dfki.de</author>
+  <maintainer>Alexander Fabisch/Alexander.Fabisch@dfki.de</maintainer>
   <license>unknown</license>
   <url>https://git.hb.dfki.de/InFuse/pocolog2msgpack</url>
   <logo>none</logo>
