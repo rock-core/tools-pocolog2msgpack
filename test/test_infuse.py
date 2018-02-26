@@ -74,3 +74,45 @@ def test_convert_quaternion():
     data = rock2infuse(data)
     samples = data["/component.port"]
     assert_equal(samples[0], [0, 1, 2, 3])
+
+
+def test_convert_rigid_body_state():
+    data = {
+        "/component.port":
+        [
+            {
+                "time": {
+                    "microseconds": 5,
+                    "usecPerSec": 1000000,
+                },
+                "sourceFrame": "A",
+                "targetFrame": "B",
+                "position": {"data": [0, 1, 2]},
+                "cov_position": {"data": [0, 1, 2, 3, 4, 5, 6, 7, 8]},
+                "orientation": {"re": 0, "im": [1, 2, 3]},
+                "cov_orientation": {"data": [0, 1, 2, 3, 4, 5, 6, 7, 8]},
+                "velocity": {"data": [2, 3, 4]},
+                "cov_velocity": {"data": [0, 1, 2, 3, 4, 5, 6, 7, 8]},
+                "angular_velocity": {"data": [3, 4, 5]},
+                "cov_angular_velocity": {"data": [0, 1, 2, 3, 4, 5, 6, 7, 8]}
+            }
+        ],
+        "/component.port.meta":
+        {
+            "type": "/base/samples/RigidBodyState",
+            "timestamps": [5],
+        }
+    }
+    data = rock2infuse(data)
+    samples = data["/component.port"]
+    assert_equal(samples[0]["timestamp"]["microseconds"], 5)
+    assert_equal(samples[0]["sourceFrame"], "A")
+    assert_equal(samples[0]["targetFrame"], "B")
+    assert_equal(samples[0]["pos"], [0, 1, 2])
+    assert_equal(samples[0]["cov_position"], [[0, 1, 2], [3, 4, 5], [6, 7, 8]])
+    assert_equal(samples[0]["orient"], [0, 1, 2, 3])
+    assert_equal(samples[0]["cov_orientation"], [[0, 1, 2], [3, 4, 5], [6, 7, 8]])
+    assert_equal(samples[0]["velocity"], [2, 3, 4])
+    assert_equal(samples[0]["cov_velocity"], [[0, 1, 2], [3, 4, 5], [6, 7, 8]])
+    assert_equal(samples[0]["angular_velocity"], [3, 4, 5])
+    assert_equal(samples[0]["cov_angular_velocity"], [[0, 1, 2], [3, 4, 5], [6, 7, 8]])
