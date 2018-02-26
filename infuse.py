@@ -1,5 +1,14 @@
 # TODO document
+import msgpack
 from math import sqrt
+
+
+def rock2infuse_logfile(input_filename, output_filename):
+    with open(input_filename, "rb") as f:
+        log = msgpack.unpack(f, encoding="utf8")
+    log = rock2infuse(log)
+    with open(output_filename, "wb") as f:
+        msgpack.pack(log, f, encoding("utf8"))
 
 
 def rock2infuse(data):
