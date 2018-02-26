@@ -35,6 +35,14 @@ def _translate_types(data):
 
 
 def _translate_sample(sample):
+    if isinstance(sample, dict):
+        sample = _translate_dict(sample)
+    elif isinstance(sample, list):
+        sample = _translate_list(sample)
+    return sample
+
+
+def _translate_dict(sample):
     converted, new_sample = _convert_time(sample)
     if converted:
         return new_sample
@@ -48,10 +56,13 @@ def _translate_sample(sample):
     converted, new_sample = _convert_rigid_body_state(sample)
     if converted:
         return new_sample
+    sample = _translate_time_to_ref_time(sample)
 
     for k in sample.keys():
         if isinstance(sample[k], dict):
             sample[k] = _translate_sample(sample[k])
+        elif isinstance(sample[k], list):
+            sample[k] = [_translate_sample(el) for el in sample[k]]
     return sample
 
 
@@ -103,3 +114,14 @@ def _convert_square_matrix(sample):
     matrix = [[content[i * n_rows + j]
                for j in range(n_rows)] for i in range(n_rows)]
     return True, matrix
+
+
+def _translate_time_to_ref_time(sample):
+    if "time" in sample:
+        sample["ref_time"] = sample["time"]
+        del sample["time"]
+    return sample
+
+
+def _translate_list(sample):
+    return [_translate_sample(el) for el in sample]

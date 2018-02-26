@@ -13,7 +13,6 @@ def test_convert_time():
         [
             {
                 "microseconds": 5,
-                "usecPerSec": 1000000,
             }
         ],
         "/component.port.meta":
@@ -83,7 +82,6 @@ def test_convert_rigid_body_state():
             {
                 "time": {
                     "microseconds": 5,
-                    "usecPerSec": 1000000,
                 },
                 "sourceFrame": "A",
                 "targetFrame": "B",
@@ -116,3 +114,61 @@ def test_convert_rigid_body_state():
     assert_equal(samples[0]["cov_velocity"], [[0, 1, 2], [3, 4, 5], [6, 7, 8]])
     assert_equal(samples[0]["angular_velocity"], [3, 4, 5])
     assert_equal(samples[0]["cov_angular_velocity"], [[0, 1, 2], [3, 4, 5], [6, 7, 8]])
+
+
+def test_convert_laser_scan():
+    data = {
+        "/component.port":
+        [
+            {
+                "time": {"microseconds": 3},
+                "start_angle": 0.0,
+                "angular_resolution": 0.1,
+                "speed": 0.1,
+                "ranges": [0, 1, 2, 3],
+                "minRange": 0,
+                "maxRange": 3,
+                "remission": [0, 1, 2, 3]
+            }
+        ],
+        "/component.port.meta":
+        {
+            "type": "/base/samples/LaserScan",
+            "timestamps": [5]
+        }
+    }
+    data = rock2infuse(data)
+    samples = data["/component.port"]
+    assert_equal(samples[0]["ref_time"]["microseconds"], 3)
+    assert_equal(samples[0]["start_angle"], 0.0)
+    assert_equal(samples[0]["angular_resolution"], 0.1)
+    assert_equal(samples[0]["speed"], 0.1)
+    assert_equal(samples[0]["ranges"], [0, 1, 2, 3])
+    assert_equal(samples[0]["minRange"], 0)
+    assert_equal(samples[0]["maxRange"], 3)
+    assert_equal(samples[0]["remission"], [0, 1, 2, 3])
+
+
+def test_convert_pointcloud():
+    data = {
+        "/component.port":
+        [
+            {
+                "time": {"microseconds": 3},
+                "points": [{"data": [0, 1, 2]}, {"data": [2, 3, 4]}],
+                "colors": [{"data": [255, 255, 255, 255]},
+                           {"data": [255, 255, 255, 255]}]
+            }
+        ],
+        "/component.port.meta":
+        {
+            "type": "/base/samples/Pointcloud",
+            "timestamps": [5]
+        }
+    }
+    data = rock2infuse(data)
+    samples = data["/component.port"]
+    assert_equal(samples[0]["ref_time"]["microseconds"], 3)
+    assert_equal(samples[0]["points"], [[0, 1, 2], [2, 3, 4]])
+    assert_equal(samples[0]["colors"], [[255, 255, 255, 255],
+                                        [255, 255, 255, 255]])
