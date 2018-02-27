@@ -8,7 +8,7 @@ def rock2infuse_logfile(input_filename, output_filename):
         log = msgpack.unpack(f, encoding="utf8")
     log = rock2infuse(log)
     with open(output_filename, "wb") as f:
-        msgpack.pack(log, f, encoding("utf8"))
+        msgpack.pack(log, f, encoding="utf8")
 
 
 def rock2infuse(data):
@@ -29,6 +29,8 @@ def _translate_typenames(data):
 
 
 def _map_typename(typename):
+    if typename.endswith("_m"):
+        typename = typename[:-2]
     return typename.split("/")[-1]
 
 
