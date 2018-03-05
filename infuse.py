@@ -67,6 +67,9 @@ def _translate_dict(sample):
     converted, new_sample = _convert_rigid_body_state(sample)
     if converted:
         return new_sample
+    converted, new_sample = _convert_joints(sample)
+    if converted:
+        return new_sample
     sample = _translate_time_to_ref_time(sample)
 
     for k in sample.keys():
@@ -112,6 +115,18 @@ def _convert_rigid_body_state(sample):
             "cov_velocity": _convert_square_matrix(sample["cov_velocity"])[1],
             "angular_velocity": _translate_sample(sample["angular_velocity"]),
             "cov_angular_velocity": _convert_square_matrix(sample["cov_angular_velocity"])[1],
+        }
+        return True, new_sample
+    else:
+        return False, None
+
+
+def _convert_joints(sample):
+    if "time" in sample and "names" in sample and "elements" in sample:
+        new_sample = {
+            "timestamp": _translate_sample(sample["time"]),
+            "names": sample["names"],
+            "elements": sample["elements"]
         }
         return True, new_sample
     else:
