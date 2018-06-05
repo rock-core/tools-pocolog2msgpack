@@ -141,6 +141,8 @@ def _translate_sample(sample):
 
 
 def _translate_dict(sample):
+    # TODO fix timestamp / ref_time inconsistencies when we switch to new
+    #      version of ESROCOS' types
     converted, new_sample = _convert_time(sample)
     if converted:
         return new_sample
@@ -155,6 +157,9 @@ def _translate_dict(sample):
     if converted:
         return new_sample
     converted, new_sample = _convert_joints(sample)
+    if converted:
+        return new_sample
+    converted, new_sample = _convert_imusensors(sample)
     if converted:
         return new_sample
     sample = _translate_time_to_ref_time(sample)
@@ -214,6 +219,19 @@ def _convert_joints(sample):
             "timestamp": _translate_sample(sample["time"]),
             "names": sample["names"],
             "elements": sample["elements"]
+        }
+        return True, new_sample
+    else:
+        return False, None
+
+
+def _convert_imusensors(sample):
+    if "gyro" in sample:
+        new_sample = {
+            "timestamp": _translate_sample(sample["time"]),
+            "acc": _translate_sample(sample["acc"]),
+            "gyro": _translate_sample(sample["gyro"]),
+            "mag": _translate_sample(sample["mag"]),
         }
         return True, new_sample
     else:
