@@ -523,9 +523,9 @@ bool Converter::visit_(Typelib::Container const& type)
         }
         else
         {
-            numElements = containerLimit;
             std::cerr << "truncating " << type.kind() << "! (" << numElements
                 << " > " << containerLimit << ")" << std::endl;
+            numElements = containerLimit;
         }
     }
 
