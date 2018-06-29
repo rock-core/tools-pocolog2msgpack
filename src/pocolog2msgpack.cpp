@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
             "Logfiles")
         ("output,o", boost::program_options::value<std::string>()->default_value("output.msg"),
             "Output file")
-        ("excloude,e", boost::program_options::value<std::string>()->default_value(""),
+        ("exclude,e", boost::program_options::value<std::string>()->default_value(""),
             "Exclude stream")
         ("size,s", boost::program_options::value<int>()->default_value(8),
             "Length of the size type. This should be 8 for most machines, "
