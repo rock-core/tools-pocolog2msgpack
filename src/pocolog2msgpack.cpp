@@ -20,6 +20,8 @@ int main(int argc, char *argv[])
             "Logfiles")
         ("output,o", boost::program_options::value<std::string>()->default_value("output.msg"),
             "Output file")
+        ("excloude,e", boost::program_options::value<std::string>()->default_value(""),
+            "Exclude stream")
         ("size,s", boost::program_options::value<int>()->default_value(8),
             "Length of the size type. This should be 8 for most machines, "
             "but it can be 1, e.g. on robots.")
@@ -60,6 +62,7 @@ int main(int argc, char *argv[])
     const std::string output = vm["output"].as<std::string>();
     const int size = vm["size"].as<int>();
     const int containerLimit = vm["container-limit"].as<int>();
+    const std::string exclude = vm["exclude"].as<std::string>();
     const std::string only = vm["only"].as<std::string>();
     const int start = vm["start"].as<int>();
     const int end = vm["end"].as<int>();
@@ -81,6 +84,6 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    return convert(logfiles, output, size, containerLimit, only, start, end,
-                   verbose);
+    return convert(logfiles, output, size, containerLimit, exclude, only,
+                   start, end, verbose);
 }

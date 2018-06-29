@@ -16,7 +16,7 @@
 void addValidInputDataStreams(
     const std::vector<pocolog_cpp::Stream*>& streams,
     std::vector<pocolog_cpp::InputDataStream*>& dataStreams,
-    const std::string& only);
+    const std::string& exclude, const std::string& only);
 int convertStreams(
     msgpack_packer& packer, std::vector<pocolog_cpp::InputDataStream*>& dataStreams,
     const int size, const int containerLimit, const int start, const int end,
@@ -29,14 +29,15 @@ int convertMetaData(
 
 
 int convert(const std::vector<std::string>& logfiles, const std::string& output,
-            const int size, const int containerLimit, const std::string& only,
-            const int start, const int end, const int verbose)
+            const int size, const int containerLimit, const std::string& exclude,
+            const std::string& only, const int start, const int end,
+            const int verbose)
 {
     pocolog_cpp::MultiFileIndex* multiIndex = new pocolog_cpp::MultiFileIndex();
     multiIndex->createIndex(logfiles);
     std::vector<pocolog_cpp::Stream*> streams = multiIndex->getAllStreams();
     std::vector<pocolog_cpp::InputDataStream*> dataStreams;
-    addValidInputDataStreams(streams, dataStreams, only);
+    addValidInputDataStreams(streams, dataStreams, exclude, only);
     if(verbose >= 1)
         std::cout << "[pocolog2msgpack] " << dataStreams.size() << " streams"
             << std::endl;
@@ -63,12 +64,14 @@ int convert(const std::vector<std::string>& logfiles, const std::string& output,
 void addValidInputDataStreams(
     const std::vector<pocolog_cpp::Stream*>& streams,
     std::vector<pocolog_cpp::InputDataStream*>& dataStreams,
-    const std::string& only)
+    const std::string& exclude, const std::string& only)
 {
     dataStreams.reserve(streams.size());
     for(size_t i = 0; i < streams.size(); i++)
     {
         if(only != "" && only != streams[i]->getName())
+            continue;
+        if(exclude != "" && exclude == streams[i]->getName())
             continue;
 
         pocolog_cpp::InputDataStream* dataStream =
