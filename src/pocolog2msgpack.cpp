@@ -20,7 +20,8 @@ int main(int argc, char *argv[])
             "Logfiles")
         ("output,o", boost::program_options::value<std::string>()->default_value("output.msg"),
             "Output file")
-        ("exclude,e", boost::program_options::value<std::string>()->default_value(""),
+        ("exclude,e",
+            boost::program_options::value<std::vector<std::string> >()->multitoken(),
             "Exclude stream")
         ("size,s", boost::program_options::value<int>()->default_value(8),
             "Length of the size type. This should be 8 for most machines, "
@@ -62,7 +63,7 @@ int main(int argc, char *argv[])
     const std::string output = vm["output"].as<std::string>();
     const int size = vm["size"].as<int>();
     const int containerLimit = vm["container-limit"].as<int>();
-    const std::string exclude = vm["exclude"].as<std::string>();
+    const std::vector<std::string> exclude = vm["exclude"].as<std::vector<std::string> >();
     const std::string only = vm["only"].as<std::string>();
     const int start = vm["start"].as<int>();
     const int end = vm["end"].as<int>();

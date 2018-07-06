@@ -16,7 +16,7 @@
 void addValidInputDataStreams(
     const std::vector<pocolog_cpp::Stream*>& streams,
     std::vector<pocolog_cpp::InputDataStream*>& dataStreams,
-    const std::string& exclude, const std::string& only);
+    const std::vector<std::string>& exclude, const std::string& only);
 int convertStreams(
     msgpack_packer& packer, std::vector<pocolog_cpp::InputDataStream*>& dataStreams,
     const int size, const int containerLimit, const int start, const int end,
@@ -29,7 +29,8 @@ int convertMetaData(
 
 
 int convert(const std::vector<std::string>& logfiles, const std::string& output,
-            const int size, const int containerLimit, const std::string& exclude,
+            const int size, const int containerLimit,
+            const std::vector<std::string>& exclude,
             const std::string& only, const int start, const int end,
             const int verbose)
 {
@@ -64,14 +65,15 @@ int convert(const std::vector<std::string>& logfiles, const std::string& output,
 void addValidInputDataStreams(
     const std::vector<pocolog_cpp::Stream*>& streams,
     std::vector<pocolog_cpp::InputDataStream*>& dataStreams,
-    const std::string& exclude, const std::string& only)
+    const std::vector<std::string>& exclude, const std::string& only)
 {
     dataStreams.reserve(streams.size());
     for(size_t i = 0; i < streams.size(); i++)
     {
         if(only != "" && only != streams[i]->getName())
             continue;
-        if(exclude != "" && exclude == streams[i]->getName())
+        if(std::find(exclude.begin(), exclude.end(), streams[i]->getName()) !=
+                exclude.end())
             continue;
 
         pocolog_cpp::InputDataStream* dataStream =
