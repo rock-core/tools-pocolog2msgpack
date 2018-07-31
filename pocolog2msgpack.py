@@ -153,6 +153,12 @@ def _translate_dict(sample):
     converted, new_sample = _convert_quaternion(sample)
     if converted:
         return new_sample
+    converted, new_sample = _convert_depth_map(sample)
+    if converted:
+        return new_sample
+    converted, new_sample = _convert_frame(sample)
+    if converted:
+        return new_sample
     converted, new_sample = _convert_rigid_body_state(sample)
     if converted:
         return new_sample
@@ -191,6 +197,54 @@ def _convert_quaternion(sample):
         return True, [sample["re"]] + sample["im"]  # quaternion w, x, y, z
     else:
         return False, None
+
+
+def _convert_depth_map(sample):
+    if "vertical_projection" in sample:
+        new_sample = {
+            "ref_time": sample["time"],
+            "timestamps": sample["timestamps"],
+            "vertical_projection": sample["vertical_projection"].lower(),
+            "horizontal_projection": sample["horizontal_projection"].lower(),
+            "vertical_interval": sample["vertical_interval"],
+            "horizontal_interval": sample["horizontal_interval"],
+            "vertical_size": sample["vertical_size"],
+            "horizontal_size": sample["horizontal_size"],
+            "distances": sample["distances"],
+            "remissions": sample["remissions"],
+        }
+        return True, new_sample
+    else:
+        return False, None
+
+
+def _convert_frame(sample):
+    if "frame_mode" in sample:
+        new_sample = {
+            "frame_time": sample["time"],
+            "received_time": sample["received_time"],
+            "attributes": _convert_frame_attributes(sample["attributes"]),
+            "image": sample["image"],
+            "datasize": sample["size"],
+            "data_depth": sample["data_depth"],
+            "pixel_size": sample["pixel_size"],
+            "row_size": sample["row_size"],
+            "frame_mode": sample["frame_mode"].lower(),
+            "frame_status": sample["frame_status"].lower(),
+        }
+        return True, new_sample
+    else:
+        return False, None
+
+
+def _convert_frame_attributes(frame_attributes):
+    result = []
+    for fa in frame_attributes:
+        result.append({
+            "att_name": fa["name_"],
+            "data": fa["data_"]
+        })
+    return result
 
 
 def _convert_rigid_body_state(sample):
