@@ -118,7 +118,9 @@ def _translate_typenames(data):
 def _map_typename(typename):
     if typename.endswith("_m"):
         typename = typename[:-2]
-    return typename.split("/")[-1]
+    if typename.startswith("/base"):
+        typename = typename.split("/")[-1]
+    return typename
 
 
 def _translate_types(data):
