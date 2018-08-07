@@ -120,6 +120,8 @@ def _map_typename(typename):
         typename = typename[:-2]
     if typename.startswith("/base"):
         typename = typename.split("/")[-1]
+    if typename == "Frame":
+        typename = "Image"
     return typename
 
 
