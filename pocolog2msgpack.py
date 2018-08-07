@@ -153,6 +153,9 @@ def _translate_dict(sample):
     converted, new_sample = _convert_quaternion(sample)
     if converted:
         return new_sample
+    converted, new_sample = _convert_pointcloud(sample)
+    if converted:
+        return new_sample
     converted, new_sample = _convert_depth_map(sample)
     if converted:
         return new_sample
@@ -286,6 +289,20 @@ def _convert_imusensors(sample):
             "acc": _translate_sample(sample["acc"]),
             "gyro": _translate_sample(sample["gyro"]),
             "mag": _translate_sample(sample["mag"]),
+        }
+        return True, new_sample
+    else:
+        return False, None
+
+
+def _convert_pointcloud(sample):
+    if "points" in sample:
+        new_sample = {
+            "metadata":
+            {"timeStamp": _translate_sample(sample["time"])},
+            "data":
+            {"points": _translate_sample(sample["points"]),
+             "colors": _translate_sample(sample["colors"])}
         }
         return True, new_sample
     else:
