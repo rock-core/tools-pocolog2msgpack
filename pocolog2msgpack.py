@@ -323,7 +323,7 @@ def _convert_square_matrix(sample):
 
 
 def _translate_time_to_ref_time(sample):
-    if "time" in sample:
+    if "time" in sample and "latitude" not in sample:  # Exception: /gps/Solution
         sample["ref_time"] = sample["time"]
         del sample["time"]
     return sample
