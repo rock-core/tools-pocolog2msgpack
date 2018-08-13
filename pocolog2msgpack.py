@@ -201,7 +201,7 @@ def _convert_vector(sample):
 
 def _convert_quaternion(sample):
     if "re" in sample and "im" in sample:
-        return True, [sample["re"]] + sample["im"]  # quaternion w, x, y, z
+        return True, sample["im"] + [sample["re"]]  # quaternion x, y, z, w
     else:
         return False, None
 
