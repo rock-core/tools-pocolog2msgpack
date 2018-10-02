@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
         ("size,s", boost::program_options::value<int>()->default_value(8),
             "Length of the size type. This should be 8 for most machines, "
             "but it can be 1, e.g. on robots.")
-        ("container-limit,c", boost::program_options::value<int>()->default_value(10000),
+        ("container-limit,c", boost::program_options::value<int>()->default_value(300000),
             "Maximum length of a container that will be read and converted. "
             "This option should only be used if you have old logfiles from "
             "which we can't read the container size properly and have to limit "
@@ -63,7 +63,9 @@ int main(int argc, char *argv[])
     const std::string output = vm["output"].as<std::string>();
     const int size = vm["size"].as<int>();
     const int containerLimit = vm["container-limit"].as<int>();
-    const std::vector<std::string> exclude = vm["exclude"].as<std::vector<std::string> >();
+    std::vector<std::string> exclude;
+    if(vm.count("exclude") > 0)
+        exclude = vm["exclude"].as<std::vector<std::string> >();
     const std::string only = vm["only"].as<std::string>();
     const int start = vm["start"].as<int>();
     const int end = vm["end"].as<int>();
