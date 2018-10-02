@@ -1,4 +1,4 @@
-from infuse import rock2infuse
+from pocolog2msgpack import rock2infuse
 from nose.tools import assert_equal, assert_in
 
 
@@ -72,7 +72,7 @@ def test_convert_quaternion():
     }
     data = rock2infuse(data)
     samples = data["/component.port"]
-    assert_equal(samples[0], [0, 1, 2, 3])
+    assert_equal(samples[0], [1, 2, 3, 0])
 
 
 def test_convert_rigid_body_state():
@@ -108,7 +108,7 @@ def test_convert_rigid_body_state():
     assert_equal(samples[0]["targetFrame"], "B")
     assert_equal(samples[0]["pos"], [0, 1, 2])
     assert_equal(samples[0]["cov_position"], [[0, 1, 2], [3, 4, 5], [6, 7, 8]])
-    assert_equal(samples[0]["orient"], [0, 1, 2, 3])
+    assert_equal(samples[0]["orient"], [1, 2, 3, 0])
     assert_equal(samples[0]["cov_orientation"], [[0, 1, 2], [3, 4, 5], [6, 7, 8]])
     assert_equal(samples[0]["velocity"], [2, 3, 4])
     assert_equal(samples[0]["cov_velocity"], [[0, 1, 2], [3, 4, 5], [6, 7, 8]])
@@ -168,7 +168,9 @@ def test_convert_pointcloud():
     }
     data = rock2infuse(data)
     samples = data["/component.port"]
-    assert_equal(samples[0]["ref_time"]["microseconds"], 3)
-    assert_equal(samples[0]["points"], [[0, 1, 2], [2, 3, 4]])
-    assert_equal(samples[0]["colors"], [[255, 255, 255, 255],
-                                        [255, 255, 255, 255]])
+    assert_equal(
+        samples[0]["metadata"]["timeStamp"]["microseconds"], 3)
+    assert_equal(samples[0]["data"]["points"],
+                 [[0, 1, 2], [2, 3, 4]])
+    assert_equal(samples[0]["data"]["colors"],
+                 [[255, 255, 255], [255, 255, 255]])

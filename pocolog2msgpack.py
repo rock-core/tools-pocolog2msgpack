@@ -306,7 +306,9 @@ def _convert_pointcloud(sample):
             {"timeStamp": _translate_sample(sample["time"])},
             "data":
             {"points": _translate_sample(sample["points"]),
-             "colors": _translate_sample(sample["colors"])}
+             "colors": [p[:3] for p in
+                        _translate_sample(sample["colors"])]
+            }
         }
         return True, new_sample
     else:
