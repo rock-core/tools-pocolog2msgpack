@@ -1,4 +1,5 @@
 import msgpack
+import mmap
 from math import sqrt
 
 
@@ -80,7 +81,7 @@ def _convert_metadata(converted_log, log, port_name):
     converted_log[port_name]["type"] = [metadata["type"]] * n_rows
 
 
-def rock2infuse_logfile(input_filename, output_filename):
+def rock2infuse_logfile(input_filename, output_filename, verbose=2):
     """Convert a MsgPack logfile from rock log format to infuse format.
 
     Parameters
@@ -90,12 +91,71 @@ def rock2infuse_logfile(input_filename, output_filename):
 
     output_filename : str
         Name of the converted logfile
+
+    verbose : int, optional (default: 0)
+        Verbosity level
     """
-    with open(input_filename, "rb") as f:
-        log = msgpack.unpack(f, encoding="utf8")
-    log = rock2infuse(log)
-    with open(output_filename, "wb") as f:
-        msgpack.pack(log, f, encoding="utf8")
+    with open(input_filename, "rb") as inf:
+        with mmap.mmap(inf.fileno(), 0, access=mmap.ACCESS_READ) as m:
+            with open(output_filename, "wb") as outf:
+                u = msgpack.Unpacker(inf, encoding="utf8")
+                p = msgpack.Packer(encoding="utf8")
+                _convert(u, outf, p, verbose)
+
+
+def _convert(u, outf, p, verbose):
+    n_keys = u.read_map_header()
+    if verbose:
+        print("Logfile [%d streams]" % n_keys)
+    outf.write(p.pack_map_header(n_keys))
+    for _ in range(n_keys):
+        key = u.unpack()
+        if verbose:
+            print("  Stream [%s]" % key)
+        outf.write(p.pack(key))
+        if key.endswith(".meta"):
+            _convert_meta_stream(u, outf, p, verbose)
+        else:
+            _convert_stream(u, outf, p, verbose)
+
+
+def _convert_meta_stream(u, outf, p, verbose):
+    n_keys = u.read_map_header()
+    outf.write(p.pack_map_header(n_keys))
+    for _ in range(n_keys):
+        key = u.unpack()
+        if verbose > 1:
+            print("    Meta [%s]" % key)
+        outf.write(p.pack(key))
+        if key == "timestamps":
+            _convert_array(u, outf, p, verbose=0)
+        elif key == "type":
+            typename = u.unpack()
+            infuse_typename = _map_typename(typename)
+            if verbose > 1:
+                print("    [%s -> %s]" % (typename, infuse_typename))
+            outf.write(p.pack(infuse_typename))
+        else:
+            entry = u.unpack()
+            outf.write(p.pack(entry))
+
+
+def _convert_stream(u, outf, p, verbose):
+    _convert_array(
+        u, outf, p, entry_converter=_translate_sample, verbose=verbose)
+
+
+def _convert_array(u, outf, p, entry_converter=None, verbose=0):
+    n_entries = u.read_array_header()
+    outf.write(p.pack_array_header(n_entries))
+    for i in range(n_entries):
+        if verbose > 1:
+            print("    Converting [%d/%d]" % (i + 1, n_entries))
+        entry = u.unpack()
+        if entry_converter is not None:
+            entry = entry_converter(entry)
+        outf.write(p.pack(entry))
+        del entry
 
 
 def rock2infuse(data):
