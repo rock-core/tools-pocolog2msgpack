@@ -1,0 +1,23 @@
+#!/usr/bin/env python
+import argparse
+import pocolog2msgpack
+
+
+def main():
+    args = parse_args()
+    pocolog2msgpack.rock2infuse_logfile(args.rock_logfile, args.infuse_logfile)
+
+
+def parse_args():
+    argparser = argparse.ArgumentParser(
+        description="Convert MsgPack with Rock's types to InFuse's types.")
+    argparser.add_argument(
+        "rock_logfile", type=str, help="MsgPack with Rock's types")
+    argparser.add_argument(
+        "infuse_logfile", type=str, help="Output file")
+    args = argparser.parse_args()
+    return args
+
+
+if __name__ == "__main__":
+    main()
