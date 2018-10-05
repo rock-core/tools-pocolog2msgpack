@@ -81,7 +81,7 @@ def _convert_metadata(converted_log, log, port_name):
     converted_log[port_name]["type"] = [metadata["type"]] * n_rows
 
 
-def rock2infuse_logfile(input_filename, output_filename, verbose=2):
+def rock2infuse_logfile(input_filename, output_filename, verbose=0):
     """Convert a MsgPack logfile from rock log format to infuse format.
 
     Parameters

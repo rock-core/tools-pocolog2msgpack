@@ -5,7 +5,8 @@ import pocolog2msgpack
 
 def main():
     args = parse_args()
-    pocolog2msgpack.rock2infuse_logfile(args.rock_logfile, args.infuse_logfile)
+    pocolog2msgpack.rock2infuse_logfile(
+        args.rock_logfile, args.infuse_logfile, args.verbose)
 
 
 def parse_args():
@@ -15,6 +16,8 @@ def parse_args():
         "rock_logfile", type=str, help="MsgPack with Rock's types")
     argparser.add_argument(
         "infuse_logfile", type=str, help="Output file")
+    argparser.add_argument(
+        "--verbose", "-v", action="count", default=0, help="Verbosity level")
     args = argparser.parse_args()
     return args
 
