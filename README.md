@@ -155,3 +155,10 @@ This will result in unravelled base::samples::Joints object in this case:
     }
 }
 ```
+
+## License
+
+pocolog2msgpack is distributed under the
+[3-clause BSD license](https://opensource.org/licenses/BSD-3-Clause).
+
+Copyright Alexander Fabisch, DFKI GmbH / Robotics Innovation Center
