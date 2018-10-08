@@ -33,10 +33,10 @@ int main(int argc, char *argv[])
             "Only convert the port given by this argument.")
         ("start", boost::program_options::value<int>()->default_value(0),
             "Index of the first sample that will be exported. This option "
-            "is only valid if only one stream will be exported.")
+            "is only useful if only one stream will be exported.")
         ("end", boost::program_options::value<int>()->default_value(-1),
             "Index after the last sample that will be exported. This option "
-            "is only valid if only one stream will be exported.")
+            "is only useful if only one stream will be exported.")
     ;
     po::variables_map vm;
     po::store(po::parse_command_line(argc, argv, desc), vm);
