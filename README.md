@@ -88,6 +88,9 @@ import msgpack
 log = msgpack.unpack(open("output.msg", "rb"), encoding="utf8")
 ```
 
+Make sure that msgpack-python is installed
+(e.g. `sudo pip3 install msgpack-python`).
+
 The object `log` is a Python dictionary that contains names of all logged ports
 as keys and the logged data in a list as its keys.
 
