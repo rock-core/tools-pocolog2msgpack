@@ -79,6 +79,20 @@ Options:
                                         if only one stream will be exported.
 ```
 
+Example:
+
+    $ pocolog2msgpack -l test/data/laser_scan.0.log -o laser_scan.msg
+    Loading logfile test/data/laser_scan.0.log
+    Stream /message_producer.messages [/base/samples/LaserScan]
+      2 Samples from 20170727-15:17:28 to 20170727-15:17:29 [01:00:00:999]
+    Stream /message_producer.state [/int32_t]
+      2 Samples from 20170727-15:17:28 to 20170727-15:17:30 [01:00:02:716]
+    Loading logfile Done test/data/laser_scan.0.log
+    Loading logfile Done test/data/laser_scan.0.log
+    Building multi file index 
+     100% Done
+    Processed 4 of 4 samples
+
 ## Loading Logs in Python
 
 Loading the converted logfiles in Python is as simple as those two lines:
