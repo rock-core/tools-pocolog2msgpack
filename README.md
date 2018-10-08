@@ -81,7 +81,13 @@ Options:
 
 Example:
 
-    $ pocolog2msgpack -l test/data/laser_scan.0.log -o laser_scan.msg
+We read the logfile `test/data/laser_scan.0.log` and convert the only stream
+`/message_producer.messages` to `laser_scan.msg`. Only samples between
+indices 0 and 1 will be converted to the output file.
+
+    $ pocolog2msgpack -l test/data/laser_scan.0.log -o laser_scan.msg --only /message_producer.messages --start 0 --end 1 --verbose 2
+    [pocolog2msgpack] Verbosity level is 2.
+    [pocolog2msgpack] Only converting port '/message_producer.messages'.
     Loading logfile test/data/laser_scan.0.log
     Stream /message_producer.messages [/base/samples/LaserScan]
       2 Samples from 20170727-15:17:28 to 20170727-15:17:29 [01:00:00:999]
@@ -91,7 +97,10 @@ Example:
     Loading logfile Done test/data/laser_scan.0.log
     Building multi file index 
      100% Done
-    Processed 4 of 4 samples
+    Processed 4 of 4 samples 
+    [pocolog2msgpack] 1 streams
+    [pocolog2msgpack] Stream #0 (/message_producer.messages): 2 samples
+    [pocolog2msgpack] Converting sample #0
 
 ## Loading Logs in Python
 
