@@ -156,6 +156,19 @@ This will result in unravelled base::samples::Joints object in this case:
 }
 ```
 
+## Tests
+
+We use nosetests to run the unit tests:
+
+    $ nosetests3
+    .................
+    ----------------------------------------------------------------------
+    Ran 17 tests in 2.074s
+
+    OK
+
+The packages nose and pexpect have to be installed with pip to run the tests.
+
 ## License
 
 pocolog2msgpack is distributed under the
