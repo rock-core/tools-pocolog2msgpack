@@ -24,9 +24,11 @@ int main(int argc, char *argv[])
             "Length of the size type. This should be 8 for most machines, "
             "but it can be 1, e.g. on robots.")
         ("container-limit,c", boost::program_options::value<int>()->default_value(10000),
-            "Maximum lenght of a container that will be converted. This option "
-            "should only be used if you have old logfiles from which we can't "
-            "read the container size properly.")
+            "Maximum length of a container that will be read and converted. "
+            "This option should only be used if you have old logfiles from "
+            "which we can't read the container size properly and have to limit "
+            "the size of containers. Otherwise sometimes the size is read "
+            "incorrectly and very large chunks of memory are converted.")
         ("only", boost::program_options::value<std::string>()->default_value(""),
             "Only convert the port given by this argument.")
         ("start", boost::program_options::value<int>()->default_value(0),
