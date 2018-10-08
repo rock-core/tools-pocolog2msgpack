@@ -183,6 +183,19 @@ We use nosetests to run the unit tests:
 
 The packages nose and pexpect have to be installed with pip to run the tests.
 
+## Contributing
+
+Usually it is not possible to push directly to the master branch for anyone.
+Only tiny changes, urgent bugfixes, and maintenance commits can be pushed
+directly to the master branch by the maintainer without a review.
+"Tiny" means backwards compatibility is mandatory and all tests must
+succeed. No new feature must be added.
+
+Developers have to submit pull requests. Those will be reviewed by at least
+one other developer and merged by a maintainer. New features must be
+documented and tested. Breaking changes must be discussed and announced
+in advance with deprecation warnings.
+
 ## License
 
 pocolog2msgpack is distributed under the
