@@ -64,18 +64,23 @@ Options:
   -s [ --size ] arg (=8)                Length of the size type. This should be
                                         8 for most machines, but it can be 1, 
                                         e.g. on robots.
-  -c [ --container-limit ] arg (=10000) Maximum lenght of a container that will
-                                        be converted. This option should only 
-                                        be used if you have old logfiles from 
-                                        which we can't read the container size 
-                                        properly.
+  -c [ --container-limit ] arg (=300000)
+                                        Maximum length of a container that will
+                                        be read and converted. This option 
+                                        should only be used if you have old 
+                                        logfiles from which we can't read the 
+                                        container size properly and have to 
+                                        limit the size of containers. Otherwise
+                                        sometimes the size is read incorrectly 
+                                        and very large chunks of memory are 
+                                        converted.
   --only arg                            Only convert the port given by this 
                                         argument.
   --start arg (=0)                      Index of the first sample that will be 
-                                        exported. This option is only valid if 
+                                        exported. This option is only useful if
                                         only one stream will be exported.
   --end arg (=-1)                       Index after the last sample that will 
-                                        be exported. This option is only valid 
+                                        be exported. This option is only useful
                                         if only one stream will be exported.
 ```
 
@@ -210,4 +215,4 @@ in advance with deprecation warnings.
 pocolog2msgpack is distributed under the
 [3-clause BSD license](https://opensource.org/licenses/BSD-3-Clause).
 
-Copyright Alexander Fabisch, DFKI GmbH / Robotics Innovation Center
+Copyright 2017-2018 Alexander Fabisch, DFKI GmbH / Robotics Innovation Center
