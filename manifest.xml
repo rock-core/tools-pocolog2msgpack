@@ -4,7 +4,7 @@
   </description>
   <author>Alexander Fabisch/Alexander.Fabisch@dfki.de</author>
   <maintainer>Alexander Fabisch/Alexander.Fabisch@dfki.de</maintainer>
-  <license>New BSD</license>
+  <license>LGPL-2.1</license>
   <url>https://git.hb.dfki.de/InFuse/pocolog2msgpack</url>
   <logo>none</logo>
 
