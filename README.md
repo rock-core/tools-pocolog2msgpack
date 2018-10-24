@@ -213,6 +213,6 @@ in advance with deprecation warnings.
 ## License
 
 pocolog2msgpack is distributed under the
-[3-clause BSD license](https://opensource.org/licenses/BSD-3-Clause).
+[LGPL-2.1 license](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html).
 
 Copyright 2017-2018 Alexander Fabisch, DFKI GmbH / Robotics Innovation Center
