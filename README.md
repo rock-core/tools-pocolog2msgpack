@@ -1,3 +1,5 @@
+[![CircleCI Status](https://circleci.com/gh/rock-core/tools-pocolog2msgpack/tree/master.svg?style=shield&circle-token=:circle-token)](https://circleci.com/gh/rock-core/tools-pocolog2msgpack)
+
 # pocolog2msgpack
 
 Logfile converter from Rock's pocolog format to MessagePack.
