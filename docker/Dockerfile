@@ -11,7 +11,9 @@ RUN apt-get update && \
       ruby \
       ruby-dev \
       python \
-      python-pip \
+      python-pexpect \
+      python-msgpack \
+      python-nose \
       castxml \
       libeigen3-dev \
       pkg-config \
@@ -30,7 +32,6 @@ RUN apt-get update && \
       libqt4-opengl-dev \
       libxml2-dev \
       qt4-qmake
-RUN pip install msgpack nose pexpect
 
 SHELL ["/bin/bash", "-c"]
 
