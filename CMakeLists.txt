@@ -7,17 +7,18 @@ include(FindPkgConfig)
 find_package(Boost COMPONENTS program_options REQUIRED)
 pkg_check_modules(POCOLOG_CPP "pocolog_cpp" REQUIRED)
 pkg_check_modules(TYPELIB "typelib" REQUIRED)
+pkg_check_modules(MSGPACK "msgpack" REQUIRED)
 include_directories(
-    src ${POCOLOG_CPP_INCLUDE_DIRS} ${TYPELIB_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS}
+    src ${POCOLOG_CPP_INCLUDE_DIRS} ${TYPELIB_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS} ${MSGPACK_INCLUDE_DIRS}
 )
 link_directories(
-    ${POCOLOG_CPP_LIBRARY_DIRS} ${TYPELIB_LIBRARY_DIRS} ${Boost_LIBRARY_DIRS}
+    ${POCOLOG_CPP_LIBRARY_DIRS} ${TYPELIB_LIBRARY_DIRS} ${Boost_LIBRARY_DIRS} ${MSGPACK_LIBRARY_DIRS}
 )
 
 add_executable(pocolog2msgpack src/pocolog2msgpack.cpp src/Converter.cpp)
 target_link_libraries(
     pocolog2msgpack
-    ${POCOLOG_CPP_LIBRARIES} ${TYPELIB_LIBRARIES} ${Boost_LIBRARIES}
+    ${POCOLOG_CPP_LIBRARIES} ${TYPELIB_LIBRARIES} ${Boost_LIBRARIES} ${MSGPACK_LIBRARIES}
 )
 install(
     TARGETS pocolog2msgpack
