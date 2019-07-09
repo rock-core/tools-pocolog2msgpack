@@ -1,0 +1,17 @@
+FROM af01/pocolog2msgpack-ci
+
+RUN git clone https://github.com/rock-core/tools-pocolog2msgpack.git
+RUN mkdir /opt/rock/tools-pocolog2msgpack/build
+WORKDIR /opt/rock/tools-pocolog2msgpack/build
+RUN source /opt/rock/env.sh && cmake ..
+RUN source /opt/rock/env.sh && make install
+
+COPY run.sh /opt/rock/run.sh
+RUN chmod 777 /opt/rock/run.sh
+
+ENTRYPOINT ["/opt/rock/run.sh"]
+
+# build docker image:
+# docker build -t af01/pocolog2msgpack -f Dockerfile_CLI .
+# use docker container:
+# docker run --interactive --rm --tty --volume "$PWD":/wd --workdir /wd -it af01/pocolog2msgpack [arguments]

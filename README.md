@@ -108,6 +108,21 @@ indices 0 and 1 will be converted to the output file.
     [pocolog2msgpack] Stream #0 (/message_producer.messages): 2 samples
     [pocolog2msgpack] Converting sample #0
 
+## Without Installation
+
+If you have docker and you do not want to install anything you can use our
+image. Just go to the directory in which the log file is located and run
+
+    docker run --interactive --rm --tty --volume "$PWD":/wd --workdir /wd -it af01/pocolog2msgpack [arguments ...]
+
+It will create a container from our docker image, run pocolog2msgpack, and
+destroy itself. The current directory is mounted within the temporary docker
+container to be able to load files from the current directory. Output should
+be written to the same folder. No complicated paths including `..` are allowed.
+There is a slight runtime overhead for creating and destroying the docker
+container. Since logfile conversions are not supposed to happen that often
+it can be ignored though.
+
 ## Loading Logs in Python
 
 Loading the converted logfiles in Python is as simple as those two lines:
@@ -119,6 +134,8 @@ log = msgpack.unpack(open("output.msg", "rb"), encoding="utf8")
 
 Make sure that msgpack-python is installed
 (e.g. `sudo pip3 install msgpack-python`).
+This is the only dependency. You do not have to install this package to load
+the files once you converted them to MsgPack.
 
 The object `log` is a Python dictionary that contains names of all logged ports
 as keys and the logged data in a list as its keys.
