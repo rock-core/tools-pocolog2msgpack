@@ -44,8 +44,7 @@ your manifest:
 
     package_sets:
        ...
-       - type: git
-         url: git@git.hb.dfki.de:InFuse/infuse-package_set.git
+       - github: rock-core/package_set
 
     layout:
        ...

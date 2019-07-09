@@ -1,4 +1,4 @@
-FROM ubuntu:16.04
+FROM ubuntu:19.04
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && \
@@ -41,16 +41,15 @@ RUN git config --global user.email infuse@example.com \
 
 WORKDIR /opt/rock
 RUN wget http://www.rock-robotics.org/autoproj_bootstrap --directory-prefix=/opt/rock/
-COPY config.yml /opt/rock/
-RUN AUTOPROJ_BOOTSTRAP_IGNORE_NONEMPTY_DIR=1 ruby autoproj_bootstrap git https://github.com/rock-core/buildconf.git --seed-config=/opt/rock/config.yml
+RUN ruby autoproj_bootstrap git https://github.com/rock-core/buildconf.git --no-interactive
 COPY manifest /opt/rock/autoproj
 COPY init.rb /opt/rock/autoproj
 COPY overrides.rb /opt/rock/autoproj
 COPY overrides.yml /opt/rock/autoproj
-RUN source env.sh && autoproj update
-RUN source env.sh && autoproj build
+RUN source env.sh && autoproj update --no-interactive
+RUN source env.sh && autoproj build --no-interactive
 RUN git clone https://github.com/msgpack/msgpack-c.git tools/msgpack-c --depth 1
-RUN source env.sh && autoproj build tools/msgpack-c
+RUN source env.sh && autoproj build tools/msgpack-c --no-interactive
 
 # Reset git configuration
 RUN rm /root/.gitconfig
