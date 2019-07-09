@@ -196,6 +196,8 @@ int convertMetaData(
         msgpack_pack_str(&packer, typeName.size());
         msgpack_pack_str_body(&packer, typeName.c_str(), typeName.size());
     }
+
+    return exitStatus;
 }
 
 Converter::Converter(std::string const& basename, Typelib::Type const& type, msgpack_packer& pk, int size, int containerLimit, int verbose)
