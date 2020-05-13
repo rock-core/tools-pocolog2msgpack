@@ -12,10 +12,11 @@
   <depend package="typelib" />
   <depend package="boost" />
   <depend package="tools/msgpack-c" />
-  <depend package="python" optional="1" />
-  <depend package="python-nose" optional="1" />
-  <depend package="python-pexpect" optional="1" />
-  <depend package="python-msgpack" optional="1" />
+  <depend package="python3" optional="1" />
+  <depend package="python3-distutils" optional="1" />
+  <depend package="python3-nose" optional="1" />
+  <depend package="python3-pexpect" optional="1" />
+  <depend package="python3-msgpack" optional="1" />
 
   <keywords>
     <keyword>Utilities</keyword>

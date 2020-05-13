@@ -1,4 +1,4 @@
-FROM ubuntu:19.04
+FROM ubuntu:19.10
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && \
@@ -10,10 +10,11 @@ RUN apt-get update && \
       sudo \
       ruby \
       ruby-dev \
-      python \
-      python-pexpect \
-      python-msgpack \
-      python-nose \
+      python3 \
+      python3-pexpect \
+      python3-msgpack \
+      python3-distutils \
+      python3-nose \
       castxml \
       libeigen3-dev \
       pkg-config \

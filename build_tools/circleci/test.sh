@@ -1,2 +1,2 @@
 source /opt/rock/env.sh
-nosetests -sv
+nosetests3 -sv
