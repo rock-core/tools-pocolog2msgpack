@@ -13,7 +13,7 @@
   <depend package="boost" />
   <depend package="tools/msgpack-c" />
   <depend package="python3" optional="1" />
-  <depend package="python3-distutils" optional="1" />
+  <!--<depend package="python3-distutils" optional="1" />-->
   <depend package="python3-nose" optional="1" />
   <depend package="python3-pexpect" optional="1" />
   <depend package="python3-msgpack" optional="1" />
