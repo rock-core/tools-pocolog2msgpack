@@ -213,7 +213,7 @@ We use nosetests to run the unit tests:
 
     OK
 
-The packages nose and pexpect have to be installed with pip to run the tests.
+The packages `nose` and `pexpect` have to be installed with pip to run the tests.
 
 ## Contributing
 

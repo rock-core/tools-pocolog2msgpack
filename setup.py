@@ -13,6 +13,7 @@ def setup_package():
         license="unknown",
         py_modules=["pocolog2msgpack"],
         requires=["msgpack"],
+        scripts=["bin/rock2infuse"],
     )
 
 

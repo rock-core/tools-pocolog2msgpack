@@ -11,6 +11,7 @@
  * @param output name of the MsgPack logfile, will be created
  * @param size size of the size type for containers in the logfile
  * @param containerLimit maximum lenght of a container that will be converted
+ * @param exclude ports excluded from conversion
  * @param only only convert the port given by this argument
  * @param start index of the first sample that will be exported
  * @param end index after the last sample that will be exported
@@ -18,7 +19,8 @@
  * @return exit status of the program
  */
 int convert(const std::vector<std::string>& logfiles, const std::string& output,
-            const int size, const int containerLimit, const std::string& only,
+            const int size, const int containerLimit,
+            const std::vector<std::string>& exclude, const std::string& only,
             const int start, const int end, const int verbose);
 
 
