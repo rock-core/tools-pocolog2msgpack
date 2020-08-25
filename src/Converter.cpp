@@ -312,7 +312,7 @@ void Converter::printBegin()
               << std::setfill(' ') << std::setw(indentation + depth) << " ";
 }
 
-bool Converter::visit_ (int8_t  & v)
+bool Converter::visit_ (int8_t & v)
 {
     if (debug)
     {
@@ -353,17 +353,17 @@ bool Converter::visit_ (int16_t & v)
     if (debug)
     {
         printBegin();
-        std::cout << __FUNCTION__ << "(int16_t & v) got "<<  v  << std::endl;
+        std::cout << __FUNCTION__ << "(int16_t & v) got " << v << std::endl;
     }
     msgpack_pack_int16(&pk, v);
     return true;
 }
-bool Converter::visit_ (uint16_t& v)
+bool Converter::visit_ (uint16_t & v)
 {
     if (debug)
     {
         printBegin();
-        std::cout << __FUNCTION__ << "(uint16_t& v) got "<<  v  << std::endl;
+        std::cout << __FUNCTION__ << "(uint16_t & v) got " << v << std::endl;
     }
     msgpack_pack_uint16(&pk, v);
     return true;
@@ -373,7 +373,7 @@ bool Converter::visit_ (int32_t & v)
     if (debug)
     {
         printBegin();
-        std::cout << __FUNCTION__ << "(int32_t & v) got "<<  v  << std::endl;
+        std::cout << __FUNCTION__ << "(int32_t & v) got " << v << std::endl;
     }
     msgpack_pack_int32(&pk, v);
     return true;
@@ -383,7 +383,7 @@ bool Converter::visit_ (uint32_t& v)
     if (debug)
     {
         printBegin();
-        std::cout << __FUNCTION__ << "(uint32_t& v) got "<<  v  << std::endl;
+        std::cout << __FUNCTION__ << "(uint32_t& v) got " << v << std::endl;
     }
     msgpack_pack_uint32(&pk, v);
     return true;
@@ -393,7 +393,7 @@ bool Converter::visit_ (int64_t & v)
     if (debug)
     {
         printBegin();
-        std::cout << __FUNCTION__ << "(int64_t & v) got "<<  v  << std::endl;
+        std::cout << __FUNCTION__ << "(int64_t & v) got " << v << std::endl;
     }
     msgpack_pack_int64(&pk, v);
     return true;
@@ -403,27 +403,27 @@ bool Converter::visit_ (uint64_t& v)
     if (debug)
     {
         printBegin();
-        std::cout << __FUNCTION__ << "(uint64_t& v) got "<<  v  << std::endl;
+        std::cout << __FUNCTION__ << "(uint64_t& v) got " << v << std::endl;
     }
     msgpack_pack_uint64(&pk, v);
     return true;
 }
-bool Converter::visit_ (float   & v)
+bool Converter::visit_ (float & v)
 {
     if (debug)
     {
         printBegin();
-        std::cout << __FUNCTION__ << "(float   & v) got "<<  v  << std::endl;
+        std::cout << __FUNCTION__ << "(float & v) got " << v << std::endl;
     }
     msgpack_pack_float(&pk, v);
     return true;
 }
-bool Converter::visit_ (double  & v)
+bool Converter::visit_ (double & v)
 {
     if (debug)
     {
         printBegin();
-        std::cout << __FUNCTION__ << "(double  & v) got "<<  v  << std::endl;
+        std::cout << __FUNCTION__ << "(double & v) got " << v << std::endl;
     }
     msgpack_pack_double(&pk, v);
 
@@ -435,7 +435,7 @@ bool Converter::visit_(Typelib::Value const& v, Typelib::OpaqueType const& type)
     if (debug)
     {
         printBegin();
-        std::cout << __FUNCTION__ << "OpaqueType at "<< v.getData() << std::endl;
+        std::cout << __FUNCTION__ << "OpaqueType at " << v.getData() << std::endl;
     }
     return true;
 }
@@ -445,7 +445,7 @@ bool Converter::visit_(Typelib::Value const& v, Typelib::Pointer const& type)
     if (debug)
     {
         printBegin();
-        std::cout << __FUNCTION__ << "Pointer at "<< v.getData() <<   std::endl;
+        std::cout << __FUNCTION__ << "Pointer at " << v.getData() << std::endl;
     }
 
     depth += 1;
@@ -460,7 +460,7 @@ bool Converter::visit_(Typelib::Value const& v, Typelib::Array const& type)
     if (debug)
     {
         printBegin();
-        std::cout << __FUNCTION__ << "Array at "<< v.getData() <<  std::endl;
+        std::cout << __FUNCTION__ << "Array at " << v.getData() << std::endl;
         printBegin();
         std::cout << "array[" << type.getDimension() << "]" << std::endl;
     }
@@ -481,7 +481,7 @@ bool Converter::visit_(Typelib::Value const& v, Typelib::Container const& type)
     if (debug)
     {
         printBegin();
-        std::cout << __FUNCTION__ << "Container at "<< v.getData() << std::endl;
+        std::cout << __FUNCTION__ << "Container at " << v.getData() << std::endl;
         printBegin();
         std::cout << "numElements: " <<numElements << std::endl;
         printBegin();
@@ -508,7 +508,7 @@ bool Converter::visit_(Typelib::Value const& v, Typelib::Container const& type)
 
         if (debug)
         {
-            std::cout << "got str: \"" << numericToStringBuffer << "\""  << std::endl;
+            std::cout << "got str: \"" << numericToStringBuffer << "\"" << std::endl;
         }
 
         msgpack_pack_str(&pk, numericToStringBuffer.size());
