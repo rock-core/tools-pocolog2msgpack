@@ -20,9 +20,6 @@ int main(int argc, char *argv[])
             "Logfiles")
         ("output,o", boost::program_options::value<std::string>()->default_value("output.msg"),
             "Output file")
-        ("size,s", boost::program_options::value<int>()->default_value(8),
-            "Length of the size type. This should be 8 for most machines, "
-            "but it can be 1, e.g. on robots.")
         ("container-limit,c", boost::program_options::value<int>()->default_value(10000),
             "Maximum length of a container that will be read and converted. "
             "This option should only be used if you have old logfiles from "
@@ -58,7 +55,6 @@ int main(int argc, char *argv[])
     const int verbose = vm["verbose"].as<int>();
     const std::vector<std::string> logfiles = vm["logfile"].as<std::vector<std::string> >();
     const std::string output = vm["output"].as<std::string>();
-    const int size = vm["size"].as<int>();
     const int containerLimit = vm["container-limit"].as<int>();
     const std::string only = vm["only"].as<std::string>();
     const int start = vm["start"].as<int>();
@@ -81,6 +77,6 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    return convert(logfiles, output, size, containerLimit, only, start, end,
+    return convert(logfiles, output, containerLimit, only, start, end,
                    verbose);
 }

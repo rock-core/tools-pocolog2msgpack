@@ -21,7 +21,7 @@ void addValidInputDataStreams(
     const std::string& only);
 int convertStreams(
     msgpack_packer& packer, std::vector<pocolog_cpp::InputDataStream*>& dataStreams,
-    const int size, const int containerLimit, const int start, const int end,
+    const int containerLimit, const int start, const int end,
     const int verbose);
 int convertSamples(Converter& conv, pocolog_cpp::InputDataStream* stream,
                    const int start, const int end, const int verbose);
@@ -31,7 +31,7 @@ int convertMetaData(
 
 
 int convert(const std::vector<std::string>& logfiles, const std::string& output,
-            const int size, const int containerLimit, const std::string& only,
+            const int containerLimit, const std::string& only,
             const int start, const int end, const int verbose)
 {
     pocolog_cpp::MultiFileIndex* multiIndex = new pocolog_cpp::MultiFileIndex();
@@ -52,7 +52,7 @@ int convert(const std::vector<std::string>& logfiles, const std::string& output,
     msgpack_pack_map(&packer, 2 * dataStreams.size());
 
     int exitStatus = convertStreams(
-                         packer, dataStreams, size, containerLimit, start, end, verbose);
+                         packer, dataStreams, containerLimit, start, end, verbose);
     exitStatus += convertMetaData(
                       packer, dataStreams, start, end, verbose);
 
@@ -108,7 +108,7 @@ const int computeRangeEnd(const int userStart, const int userEnd,
 
 int convertStreams(
     msgpack_packer& packer, std::vector<pocolog_cpp::InputDataStream*>& dataStreams,
-    const int size, const int containerLimit, const int start, const int end,
+    const int containerLimit, const int start, const int end,
     const int verbose)
 {
     int exitStatus = EXIT_SUCCESS;
