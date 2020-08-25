@@ -49,9 +49,9 @@ class Converter : public Typelib::ValueVisitor
     /** A constant that will be used to format debug output on stdout. */
     const int indentation;
 
-    bool mode_numeric_to_string = false;
+    bool modeNumericToString = false;
 
-    std::string numeric_to_string_buffer = "";
+    std::string numericToStringBuffer = "";
 
 public:
     Converter(std::string const& basename, Typelib::Type const& type, msgpack_packer& pk, int containerLimit, int verbose);

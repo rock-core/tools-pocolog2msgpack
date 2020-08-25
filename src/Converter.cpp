@@ -154,8 +154,8 @@ int convertSamples(Converter& conv, pocolog_cpp::InputDataStream* stream,
                    const int start, const int end, const int verbose)
 {
 
-    float next_report_progress = 0.0;
-    float report_progress_delta = 0.1;
+    float nextReportProgress = 0.0;
+    float reportProgressDelta = 0.1;
 
     for(size_t t = start; t < end; t++)
     {
@@ -203,9 +203,9 @@ int convertSamples(Converter& conv, pocolog_cpp::InputDataStream* stream,
 
         float progress = ((float)(t-start))/(end-start);
 
-        if ( progress >= next_report_progress )
+        if ( progress >= nextReportProgress )
         {
-            next_report_progress += report_progress_delta;
+            nextReportProgress += reportProgressDelta;
             if (verbose >= 1)
             {
                 std::cout << "[pocolog2msgpack] " << (int)(progress*100) << "% of stream done." << std::endl;
@@ -320,9 +320,9 @@ bool Converter::visit_ (int8_t  & v)
         std::cout << "got int8 " << (int)v << std::endl;
     }
 
-    if (mode_numeric_to_string)
+    if (modeNumericToString)
     {
-        numeric_to_string_buffer += (char)v;
+        numericToStringBuffer += (char)v;
         return true;
     }
 
@@ -338,9 +338,9 @@ bool Converter::visit_ (uint8_t & v)
         std::cout << "got uint8 " << (unsigned int) v << std::endl;
     }
 
-    if (mode_numeric_to_string)
+    if (modeNumericToString)
     {
-        numeric_to_string_buffer += (char)v;
+        numericToStringBuffer += (char)v;
         return true;
     }
 
@@ -497,22 +497,22 @@ bool Converter::visit_(Typelib::Value const& v, Typelib::Container const& type)
 
     if(type.kind() == "/std/string")
     {
-        numeric_to_string_buffer = "";
-        mode_numeric_to_string = true;
+        numericToStringBuffer = "";
+        modeNumericToString = true;
 
         depth += 1;
         retval = Typelib::ValueVisitor::visit_(v, type);
         depth -= 1;
 
-        mode_numeric_to_string = false;
+        modeNumericToString = false;
 
         if (debug)
         {
-            std::cout << "got str: \"" << numeric_to_string_buffer << "\""  << std::endl;
+            std::cout << "got str: \"" << numericToStringBuffer << "\""  << std::endl;
         }
 
-        msgpack_pack_str(&pk, numeric_to_string_buffer.size());
-        msgpack_pack_str_body(&pk, numeric_to_string_buffer.c_str(), numeric_to_string_buffer.size());
+        msgpack_pack_str(&pk, numericToStringBuffer.size());
+        msgpack_pack_str_body(&pk, numericToStringBuffer.c_str(), numericToStringBuffer.size());
 
     }
     else
