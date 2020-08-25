@@ -185,9 +185,9 @@ int convertSamples(Converter& conv, pocolog_cpp::InputDataStream* stream,
             for ( size_t i=0; i < curSampleData.size() ; i++ )
             {
                 if (i % 32 == 0) std::cout << std::endl;
-                std::ios_base::fmtflags f( std::cout.flags() );
+                std::ios_base::fmtflags f(std::cout.flags());
                 std::cout << std::setfill('0') << std::setw(2) << std::right << std::hex << (unsigned int)(curSampleData[i]) << " ";
-                std::cout.flags( f );
+                std::cout.flags(f);
                 std::cout << " ";
 
                 if (i > 128)
