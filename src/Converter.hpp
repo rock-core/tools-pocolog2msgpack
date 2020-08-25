@@ -48,11 +48,11 @@ class Converter : public Typelib::ValueVisitor
     int depth;
     /** A constant that will be used to format debug output on stdout. */
     const int indentation;
-    
+
     bool mode_numeric_to_string = false;
-    
+
     std::string numeric_to_string_buffer = "";
-    
+
 public:
     Converter(std::string const& basename, Typelib::Type const& type, msgpack_packer& pk, int containerLimit, int verbose);
     virtual ~Converter();
@@ -68,7 +68,7 @@ protected:
     bool visit_ (uint64_t& v);
     bool visit_ (float   & v);
     bool visit_ (double  & v);
-    
+
     bool visit_(Typelib::Value const& v, Typelib::OpaqueType const& type);
     bool visit_(Typelib::Value const& v, Typelib::Pointer const& type);
     bool visit_(Typelib::Value const& v, Typelib::Array const& type);
@@ -76,7 +76,7 @@ protected:
     bool visit_(Typelib::Value const& v, Typelib::Compound const& type);
     bool visit_(Typelib::Value const& v, Typelib::Compound const& type, Typelib::Field const& field);
     bool visit_(Typelib::Enum::integral_type&, Typelib::Enum const& e);
-    
+
     using ValueVisitor::visit_;
 private:
     void reset();
