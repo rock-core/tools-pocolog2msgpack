@@ -246,7 +246,8 @@ int convertMetaData(
         msgpack_pack_array(&packer, exportedSize);
 
         if (exportedSize > 0) {
-            for(size_t t = start; t < realEnd; t++) {
+            for(size_t t = start; t < realEnd; t++) 
+            {
                 msgpack_pack_int64(&packer, streamIndex.getSampleTime(t).microseconds);
             }
         }
@@ -301,7 +302,8 @@ void Converter::printBegin()
         << std::setfill(' ') << std::setw(indentation + depth) << " ";
 }
 
-bool Converter::visit_ (int8_t  & v) {
+bool Converter::visit_ (int8_t  & v) 
+{
     if (debug) {
         printBegin();
         std::cout << "got int8 " << (int)v << std::endl;
@@ -316,13 +318,16 @@ bool Converter::visit_ (int8_t  & v) {
     return true;
 }
 
-bool Converter::visit_ (uint8_t & v) {
-    if (debug) {
+bool Converter::visit_ (uint8_t & v) 
+{
+    if (debug) 
+    {
         printBegin();
         std::cout << "got uint8 " << (unsigned int) v << std::endl;
     }
 
-    if (mode_numeric_to_string) {
+    if (mode_numeric_to_string) 
+    {
         numeric_to_string_buffer += (char)v;
         return true;
     }
@@ -331,47 +336,58 @@ bool Converter::visit_ (uint8_t & v) {
     return true;
 }
 
-bool Converter::visit_ (int16_t & v) {
-    if (debug) {
+bool Converter::visit_ (int16_t & v) 
+{
+    if (debug) 
+    {
         printBegin();
         std::cout << __FUNCTION__ << "(int16_t & v) got "<<  v  << std::endl;
     }
     msgpack_pack_int16(&pk, v);
     return true;
 }
-bool Converter::visit_ (uint16_t& v) {
-    if (debug) {
+bool Converter::visit_ (uint16_t& v) 
+{
+    if (debug) 
+    {
         printBegin();
         std::cout << __FUNCTION__ << "(uint16_t& v) got "<<  v  << std::endl;
     }
     msgpack_pack_uint16(&pk, v);
     return true;
 }
-bool Converter::visit_ (int32_t & v) {
-    if (debug) {
+bool Converter::visit_ (int32_t & v) 
+{
+    if (debug) 
+    {
         printBegin();
         std::cout << __FUNCTION__ << "(int32_t & v) got "<<  v  << std::endl;
     }
     msgpack_pack_int32(&pk, v);
     return true;
 }
-bool Converter::visit_ (uint32_t& v) {
-    if (debug) {
+bool Converter::visit_ (uint32_t& v) 
+{
+    if (debug) 
+    {
         printBegin();
         std::cout << __FUNCTION__ << "(uint32_t& v) got "<<  v  << std::endl;
     }
     msgpack_pack_uint32(&pk, v);
     return true;
 }
-bool Converter::visit_ (int64_t & v) {
-    if (debug) {
+bool Converter::visit_ (int64_t & v) 
+{
+    if (debug) 
+    {
         printBegin();
         std::cout << __FUNCTION__ << "(int64_t & v) got "<<  v  << std::endl;
     }
     msgpack_pack_int64(&pk, v);
     return true;
 }
-bool Converter::visit_ (uint64_t& v) {
+bool Converter::visit_ (uint64_t& v) 
+{
     if (debug) {
         printBegin();
         std::cout << __FUNCTION__ << "(uint64_t& v) got "<<  v  << std::endl;
@@ -379,16 +395,20 @@ bool Converter::visit_ (uint64_t& v) {
     msgpack_pack_uint64(&pk, v);
     return true;
 }
-bool Converter::visit_ (float   & v) {
-    if (debug) {
+bool Converter::visit_ (float   & v) 
+{
+    if (debug) 
+    {
         printBegin();
         std::cout << __FUNCTION__ << "(float   & v) got "<<  v  << std::endl;
     }
     msgpack_pack_float(&pk, v);
     return true;
 }
-bool Converter::visit_ (double  & v) {
-    if (debug) {
+bool Converter::visit_ (double  & v) 
+{
+    if (debug) 
+    {
         printBegin();
         std::cout << __FUNCTION__ << "(double  & v) got "<<  v  << std::endl;
     }
@@ -399,7 +419,8 @@ bool Converter::visit_ (double  & v) {
 
 bool Converter::visit_(Typelib::Value const& v, Typelib::OpaqueType const& type)
 {
-    if (debug) {
+    if (debug) 
+    {
         printBegin();
         std::cout << __FUNCTION__ << "OpaqueType at "<< v.getData() << std::endl;
     }
@@ -408,7 +429,8 @@ bool Converter::visit_(Typelib::Value const& v, Typelib::OpaqueType const& type)
 
 bool Converter::visit_(Typelib::Value const& v, Typelib::Pointer const& type)
 {
-    if (debug) {
+    if (debug) 
+    {
         printBegin();
         std::cout << __FUNCTION__ << "Pointer at "<< v.getData() <<   std::endl;
     }
@@ -422,7 +444,8 @@ bool Converter::visit_(Typelib::Value const& v, Typelib::Pointer const& type)
 
 bool Converter::visit_(Typelib::Value const& v, Typelib::Array const& type)
 {
-    if (debug) {
+    if (debug) 
+    {
         printBegin();
         std::cout << __FUNCTION__ << "Array at "<< v.getData() <<  std::endl;
         printBegin();
@@ -442,13 +465,15 @@ bool Converter::visit_(Typelib::Value const& v, Typelib::Container const& type)
 {
     size_t numElements = type.getElementCount(v.getData());
 
-    if (debug) {
+    if (debug) 
+    {
         printBegin(); std::cout << __FUNCTION__ << "Container at "<< v.getData() << std::endl;
         printBegin(); std::cout << "numElements: " <<numElements << std::endl;
         printBegin(); std::cout << type.kind() << "[" << numElements << "]" << std::endl;
     }
 
-    if(numElements > containerLimit) {
+    if(numElements > containerLimit) 
+    {
         throw std::runtime_error("too many elements");
     }
 
@@ -472,7 +497,8 @@ bool Converter::visit_(Typelib::Value const& v, Typelib::Container const& type)
         msgpack_pack_str(&pk, numeric_to_string_buffer.size());
         msgpack_pack_str_body(&pk, numeric_to_string_buffer.c_str(), numeric_to_string_buffer.size());
 
-    } else {
+    } else 
+    {
 
         msgpack_pack_array(&pk, numElements);
 
@@ -486,7 +512,8 @@ bool Converter::visit_(Typelib::Value const& v, Typelib::Container const& type)
 
 bool Converter::visit_(Typelib::Value const& v, Typelib::Compound const& type)
 {
-    if (debug) {
+    if (debug) 
+    {
         printBegin();
         std::cout << "compound '" << type.getName() << "' with " << type.getFields().size() << " fields" << std::endl;
     }
@@ -502,7 +529,8 @@ bool Converter::visit_(Typelib::Value const& v, Typelib::Compound const& type)
 
 bool Converter::visit_(Typelib::Value const& v, Typelib::Compound const& type, Typelib::Field const& field)
 {
-    if (debug) {
+    if (debug) 
+    {
         printBegin();
         std::cout << "field '" << field.getName() << "'" << std::endl;
     }
