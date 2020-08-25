@@ -449,7 +449,7 @@ bool Converter::visit_(Typelib::Value const& v, Typelib::Pointer const& type)
     }
 
     depth += 1;
-    auto retval = Typelib::ValueVisitor::visit_(v, type);
+    bool retval = Typelib::ValueVisitor::visit_(v, type);
     depth -= 1;
 
     return retval;
@@ -468,7 +468,7 @@ bool Converter::visit_(Typelib::Value const& v, Typelib::Array const& type)
     msgpack_pack_array(&pk, type.getDimension());
 
     depth += 1;
-    auto retval = Typelib::ValueVisitor::visit_(v, type);
+    bool retval = Typelib::ValueVisitor::visit_(v, type);
     depth -= 1;
 
     return retval;
@@ -539,7 +539,7 @@ bool Converter::visit_(Typelib::Value const& v, Typelib::Compound const& type)
     msgpack_pack_map(&pk, type.getFields().size());
 
     depth += 1;
-    auto retval = Typelib::ValueVisitor::visit_(v, type);
+    bool retval = Typelib::ValueVisitor::visit_(v, type);
     depth -= 1;
 
     return retval;
@@ -559,7 +559,7 @@ bool Converter::visit_(Typelib::Value const& v, Typelib::Compound const& type, T
     fieldName.push_back(field.getName());
 
     depth += 1;
-    auto retval = Typelib::ValueVisitor::visit_(v, type, field);
+    bool retval = Typelib::ValueVisitor::visit_(v, type, field);
     depth -= 1;
 
     fieldName.pop_back();
