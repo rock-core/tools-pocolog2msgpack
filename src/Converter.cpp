@@ -153,9 +153,8 @@ int convertStreams(
 int convertSamples(Converter& conv, pocolog_cpp::InputDataStream* stream,
                    const int start, const int end, const int verbose)
 {
-
-    float nextReportProgress = 0.0;
-    float reportProgressDelta = 0.1;
+    const float reportProgressDelta = 0.1;
+    float nextReportProgress = reportProgressDelta;
 
     for(size_t t = start; t < end; t++)
     {
@@ -177,20 +176,22 @@ int convertSamples(Converter& conv, pocolog_cpp::InputDataStream* stream,
 
         if(verbose >= 3)
         {
-            std::cout << "Converting sample of size " << curSampleData.size() << std::endl;
+            std::cout << "[pocolog2msgpack] Converting sample of size "
+                      << curSampleData.size() << std::endl;
         }
 
         if(verbose >= 4)
         {
-            for ( size_t i=0; i < curSampleData.size() ; i++ )
+            for(size_t i = 0; i < curSampleData.size(); i++)
             {
-                if (i % 32 == 0) std::cout << std::endl;
+                if(i % 32 == 0 && i > 0) std::cout << std::endl;
                 std::ios_base::fmtflags f(std::cout.flags());
-                std::cout << std::setfill('0') << std::setw(2) << std::right << std::hex << (unsigned int)(curSampleData[i]) << " ";
+                std::cout << std::setfill('0') << std::setw(2) << std::right << std::hex
+                          << (unsigned int)(curSampleData[i]) << " ";
                 std::cout.flags(f);
                 std::cout << " ";
 
-                if (i > 128)
+                if(i > 128)
                 {
                     std::cout << "...";
                     break;
@@ -201,18 +202,16 @@ int convertSamples(Converter& conv, pocolog_cpp::InputDataStream* stream,
 
         conv.convertSample(curSampleData);
 
-        float progress = ((float)(t-start))/(end-start);
-
-        if ( progress >= nextReportProgress )
+        const float progress = ((float)(t - start)) / (end - start);
+        if(progress >= nextReportProgress)
         {
             nextReportProgress += reportProgressDelta;
-            if (verbose >= 1)
+            if(verbose >= 1)
             {
-                std::cout << "[pocolog2msgpack] " << (int)(progress*100) << "% of stream done." << std::endl;
+                std::cout << "[pocolog2msgpack] " << (int)(progress * 100)
+                          << "% of stream done." << std::endl;
             }
         }
-
-
     }
     return EXIT_SUCCESS;
 }
@@ -236,7 +235,7 @@ int convertMetaData(
         const int realEnd = computeRangeEnd(start, end, stream->getSize(), false);
         int exportedSize = realEnd - start;
 
-        if (exportedSize < 0)
+        if(exportedSize < 0)
         {
             std::cerr << "[pocolog2msgpack] No samples in requested range for meta stream \""
                       << key << "\"." << std::endl;
@@ -254,7 +253,7 @@ int convertMetaData(
 
         msgpack_pack_array(&packer, exportedSize);
 
-        if (exportedSize > 0)
+        if(exportedSize > 0)
         {
             for(size_t t = start; t < realEnd; t++)
             {
@@ -314,13 +313,13 @@ void Converter::printBegin()
 
 bool Converter::visit_ (int8_t & v)
 {
-    if (debug)
+    if(debug)
     {
         printBegin();
         std::cout << "got int8 " << (int)v << std::endl;
     }
 
-    if (modeNumericToString)
+    if(modeNumericToString)
     {
         numericToStringBuffer += (char)v;
         return true;
@@ -332,13 +331,13 @@ bool Converter::visit_ (int8_t & v)
 
 bool Converter::visit_ (uint8_t & v)
 {
-    if (debug)
+    if(debug)
     {
         printBegin();
         std::cout << "got uint8 " << (unsigned int) v << std::endl;
     }
 
-    if (modeNumericToString)
+    if(modeNumericToString)
     {
         numericToStringBuffer += (char)v;
         return true;
@@ -350,7 +349,7 @@ bool Converter::visit_ (uint8_t & v)
 
 bool Converter::visit_ (int16_t & v)
 {
-    if (debug)
+    if(debug)
     {
         printBegin();
         std::cout << __FUNCTION__ << "(int16_t & v) got " << v << std::endl;
@@ -360,7 +359,7 @@ bool Converter::visit_ (int16_t & v)
 }
 bool Converter::visit_ (uint16_t & v)
 {
-    if (debug)
+    if(debug)
     {
         printBegin();
         std::cout << __FUNCTION__ << "(uint16_t & v) got " << v << std::endl;
@@ -370,7 +369,7 @@ bool Converter::visit_ (uint16_t & v)
 }
 bool Converter::visit_ (int32_t & v)
 {
-    if (debug)
+    if(debug)
     {
         printBegin();
         std::cout << __FUNCTION__ << "(int32_t & v) got " << v << std::endl;
@@ -380,7 +379,7 @@ bool Converter::visit_ (int32_t & v)
 }
 bool Converter::visit_ (uint32_t& v)
 {
-    if (debug)
+    if(debug)
     {
         printBegin();
         std::cout << __FUNCTION__ << "(uint32_t& v) got " << v << std::endl;
@@ -390,7 +389,7 @@ bool Converter::visit_ (uint32_t& v)
 }
 bool Converter::visit_ (int64_t & v)
 {
-    if (debug)
+    if(debug)
     {
         printBegin();
         std::cout << __FUNCTION__ << "(int64_t & v) got " << v << std::endl;
@@ -400,7 +399,7 @@ bool Converter::visit_ (int64_t & v)
 }
 bool Converter::visit_ (uint64_t& v)
 {
-    if (debug)
+    if(debug)
     {
         printBegin();
         std::cout << __FUNCTION__ << "(uint64_t& v) got " << v << std::endl;
@@ -410,7 +409,7 @@ bool Converter::visit_ (uint64_t& v)
 }
 bool Converter::visit_ (float & v)
 {
-    if (debug)
+    if(debug)
     {
         printBegin();
         std::cout << __FUNCTION__ << "(float & v) got " << v << std::endl;
@@ -420,7 +419,7 @@ bool Converter::visit_ (float & v)
 }
 bool Converter::visit_ (double & v)
 {
-    if (debug)
+    if(debug)
     {
         printBegin();
         std::cout << __FUNCTION__ << "(double & v) got " << v << std::endl;
@@ -432,7 +431,7 @@ bool Converter::visit_ (double & v)
 
 bool Converter::visit_(Typelib::Value const& v, Typelib::OpaqueType const& type)
 {
-    if (debug)
+    if(debug)
     {
         printBegin();
         std::cout << __FUNCTION__ << "OpaqueType at " << v.getData() << std::endl;
@@ -442,7 +441,7 @@ bool Converter::visit_(Typelib::Value const& v, Typelib::OpaqueType const& type)
 
 bool Converter::visit_(Typelib::Value const& v, Typelib::Pointer const& type)
 {
-    if (debug)
+    if(debug)
     {
         printBegin();
         std::cout << __FUNCTION__ << "Pointer at " << v.getData() << std::endl;
@@ -457,7 +456,7 @@ bool Converter::visit_(Typelib::Value const& v, Typelib::Pointer const& type)
 
 bool Converter::visit_(Typelib::Value const& v, Typelib::Array const& type)
 {
-    if (debug)
+    if(debug)
     {
         printBegin();
         std::cout << __FUNCTION__ << "Array at " << v.getData() << std::endl;
@@ -478,7 +477,7 @@ bool Converter::visit_(Typelib::Value const& v, Typelib::Container const& type)
 {
     size_t numElements = type.getElementCount(v.getData());
 
-    if (debug)
+    if(debug)
     {
         printBegin();
         std::cout << __FUNCTION__ << "Container at " << v.getData() << std::endl;
@@ -510,8 +509,9 @@ bool Converter::visit_(Typelib::Value const& v, Typelib::Container const& type)
 
         modeNumericToString = false;
 
-        if (debug)
+        if(debug)
         {
+            printBegin();
             std::cout << "got str: \"" << numericToStringBuffer << "\"" << std::endl;
         }
 
@@ -534,7 +534,7 @@ bool Converter::visit_(Typelib::Value const& v, Typelib::Container const& type)
 
 bool Converter::visit_(Typelib::Value const& v, Typelib::Compound const& type)
 {
-    if (debug)
+    if(debug)
     {
         printBegin();
         std::cout << "compound '" << type.getName() << "' with " << type.getFields().size() << " fields" << std::endl;
@@ -551,7 +551,7 @@ bool Converter::visit_(Typelib::Value const& v, Typelib::Compound const& type)
 
 bool Converter::visit_(Typelib::Value const& v, Typelib::Compound const& type, Typelib::Field const& field)
 {
-    if (debug)
+    if(debug)
     {
         printBegin();
         std::cout << "field '" << field.getName() << "'" << std::endl;
