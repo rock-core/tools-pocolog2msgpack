@@ -123,11 +123,10 @@ Loading the converted logfiles in Python is as simple as those two lines:
 
 ```python
 import msgpack
-log = msgpack.unpack(open("output.msg", "rb"), encoding="utf8")
+log = msgpack.unpack(open("output.msg", "rb"))
 ```
 
-Make sure that msgpack-python is installed
-(e.g. `sudo pip3 install msgpack-python`).
+Make sure that msgpack is installed (e.g. `pip install msgpack`).
 This is the only dependency. You do not have to install this package to load
 the files once you converted them to MsgPack.
 
@@ -155,7 +154,7 @@ import msgpack
 import pocolog2msgpack
 import pandas
 pocolog2msgpack.object2relational(logfile, logfile_relational)
-log = msgpack.unpack(open(logfile_relational, "rb"), encoding="utf8")
+log = msgpack.unpack(open(logfile_relational, "rb"))
 df = pandas.DataFrame(log[port_name])
 # use the timestamp as an index:
 df.set_index("timestamp", inplace=True)
@@ -164,7 +163,7 @@ df.reindex_axis(sorted(df.columns), axis=1, copy=False)
 ```
 
 Vectors or arrays will usually not be unravelled automatically even if they
-have the same size in each sample. You have to whitelist them manually, e.g.
+have the same size in each sample. You have to whitelist them manually, e.g.,
 
 ```python
 pocolog2msgpack.object2relational(
@@ -200,7 +199,7 @@ This will result in unravelled base::samples::Joints object in this case:
 
 We use nosetests to run the unit tests:
 
-    $ nosetests3
+    $ nosetests
     .................
     ----------------------------------------------------------------------
     Ran 17 tests in 2.074s
