@@ -41,7 +41,7 @@ int convert(const std::vector<std::string>& logfiles, const std::string& output,
     addValidInputDataStreams(streams, dataStreams, only);
     if(verbose >= 1)
         std::cout << "[pocolog2msgpack] " << dataStreams.size() << " streams"
-            << std::endl;
+                  << std::endl;
 
     FILE* fp = fopen(output.c_str(), "w");
 
@@ -52,9 +52,9 @@ int convert(const std::vector<std::string>& logfiles, const std::string& output,
     msgpack_pack_map(&packer, 2 * dataStreams.size());
 
     int exitStatus = convertStreams(
-        packer, dataStreams, size, containerLimit, start, end, verbose);
+                         packer, dataStreams, size, containerLimit, start, end, verbose);
     exitStatus += convertMetaData(
-        packer, dataStreams, start, end, verbose);
+                      packer, dataStreams, start, end, verbose);
 
     fclose(fp);
     delete multiIndex;
@@ -78,14 +78,14 @@ void addValidInputDataStreams(
         if(!dataStream)
         {
             std::cerr << "[pocolog2msgpack] Stream #" << i
-                << " is not an InputDataStream, will be ignored!" << std::endl;
+                      << " is not an InputDataStream, will be ignored!" << std::endl;
             continue;
         }
         dataStreams.push_back(dataStream);
     }
     if(only != "" && dataStreams.size() == 0)
         std::cerr << "[pocolog2msgpack] Did not find the stream '" << only
-            << "'." << std::endl;
+                  << "'." << std::endl;
 }
 
 const int computeRangeEnd(const int userStart, const int userEnd,
@@ -97,9 +97,9 @@ const int computeRangeEnd(const int userStart, const int userEnd,
         if(printWarning)
         {
             std::cerr << "[pocolog2msgpack] Requested samples [" << userStart
-                << ", " << userEnd << "). This stream only has "
-                << streamLength << " samples. Range will be cut to ["
-                << userStart << ", " << streamLength << ")" << std::endl;
+                      << ", " << userEnd << "). This stream only has "
+                      << streamLength << " samples. Range will be cut to ["
+                      << userStart << ", " << streamLength << ")" << std::endl;
         }
         realEnd = streamLength;
     }
@@ -121,13 +121,14 @@ int convertStreams(
         const std::string streamName = stream->getName();
         if(verbose >= 1)
             std::cout << "[pocolog2msgpack] Stream #" << i << " ("
-                << streamName << "): " << stream->getSize()
-                << " samples" << std::endl;
+                      << streamName << "): " << stream->getSize()
+                      << " samples" << std::endl;
 
         const int realEnd = computeRangeEnd(start, end, stream->getSize(), true);
         int exportedSize = realEnd - start;
 
-        if (exportedSize < 0) {
+        if (exportedSize < 0)
+        {
             std::cerr << "[pocolog2msgpack] No samples in requested range for stream \""
                       << streamName << "\"." << std::endl;
             exportedSize = 0;
@@ -150,7 +151,7 @@ int convertStreams(
 }
 
 int convertSamples(Converter& conv, pocolog_cpp::InputDataStream* stream,
-    const int start, const int end, const int verbose)
+                   const int start, const int end, const int verbose)
 {
 
     float next_report_progress = 0.0;
@@ -159,9 +160,10 @@ int convertSamples(Converter& conv, pocolog_cpp::InputDataStream* stream,
     for(size_t t = start; t < end; t++)
     {
 
-        if(verbose >= 2) {
+        if(verbose >= 2)
+        {
             std::cout << "[pocolog2msgpack] Converting sample #" << t
-                << std::endl;
+                      << std::endl;
         }
         std::vector<uint8_t> curSampleData;
         const bool ok = stream->getSampleData(curSampleData, t);
@@ -169,23 +171,27 @@ int convertSamples(Converter& conv, pocolog_cpp::InputDataStream* stream,
         if(!ok)
         {
             std::cerr << "[pocolog2msgpack] ERROR: Could not read sample data."
-                << std::endl;
+                      << std::endl;
             return EXIT_FAILURE;
         }
 
-        if(verbose >= 3) {
+        if(verbose >= 3)
+        {
             std::cout << "Converting sample of size " << curSampleData.size() << std::endl;
         }
 
-        if(verbose >= 4){
-            for ( size_t i=0; i < curSampleData.size() ; i++ ){
+        if(verbose >= 4)
+        {
+            for ( size_t i=0; i < curSampleData.size() ; i++ )
+            {
                 if (i % 32 == 0) std::cout << std::endl;
                 std::ios_base::fmtflags f( std::cout.flags() );
                 std::cout << std::setfill('0') << std::setw(2) << std::right << std::hex << (unsigned int)(curSampleData[i]) << " ";
                 std::cout.flags( f );
                 std::cout << " ";
 
-                if (i > 128) {
+                if (i > 128)
+                {
                     std::cout << "...";
                     break;
                 }
@@ -197,9 +203,11 @@ int convertSamples(Converter& conv, pocolog_cpp::InputDataStream* stream,
 
         float progress = ((float)(t-start))/(end-start);
 
-        if ( progress >= next_report_progress ) {
+        if ( progress >= next_report_progress )
+        {
             next_report_progress += report_progress_delta;
-            if (verbose >= 1) {
+            if (verbose >= 1)
+            {
                 std::cout << "[pocolog2msgpack] " << (int)(progress*100) << "% of stream done." << std::endl;
             }
         }
@@ -228,7 +236,8 @@ int convertMetaData(
         const int realEnd = computeRangeEnd(start, end, stream->getSize(), false);
         int exportedSize = realEnd - start;
 
-        if (exportedSize < 0) {
+        if (exportedSize < 0)
+        {
             std::cerr << "[pocolog2msgpack] No samples in requested range for meta stream \""
                       << key << "\"." << std::endl;
             exportedSize = 0;
@@ -245,8 +254,9 @@ int convertMetaData(
 
         msgpack_pack_array(&packer, exportedSize);
 
-        if (exportedSize > 0) {
-            for(size_t t = start; t < realEnd; t++) 
+        if (exportedSize > 0)
+        {
+            for(size_t t = start; t < realEnd; t++)
             {
                 msgpack_pack_int64(&packer, streamIndex.getSampleTime(t).microseconds);
             }
@@ -299,17 +309,19 @@ void Converter::reset()
 void Converter::printBegin()
 {
     std::cout << "[pocolog2msgpack]"
-        << std::setfill(' ') << std::setw(indentation + depth) << " ";
+              << std::setfill(' ') << std::setw(indentation + depth) << " ";
 }
 
-bool Converter::visit_ (int8_t  & v) 
+bool Converter::visit_ (int8_t  & v)
 {
-    if (debug) {
+    if (debug)
+    {
         printBegin();
         std::cout << "got int8 " << (int)v << std::endl;
     }
 
-    if (mode_numeric_to_string) {
+    if (mode_numeric_to_string)
+    {
         numeric_to_string_buffer += (char)v;
         return true;
     }
@@ -318,15 +330,15 @@ bool Converter::visit_ (int8_t  & v)
     return true;
 }
 
-bool Converter::visit_ (uint8_t & v) 
+bool Converter::visit_ (uint8_t & v)
 {
-    if (debug) 
+    if (debug)
     {
         printBegin();
         std::cout << "got uint8 " << (unsigned int) v << std::endl;
     }
 
-    if (mode_numeric_to_string) 
+    if (mode_numeric_to_string)
     {
         numeric_to_string_buffer += (char)v;
         return true;
@@ -336,9 +348,9 @@ bool Converter::visit_ (uint8_t & v)
     return true;
 }
 
-bool Converter::visit_ (int16_t & v) 
+bool Converter::visit_ (int16_t & v)
 {
-    if (debug) 
+    if (debug)
     {
         printBegin();
         std::cout << __FUNCTION__ << "(int16_t & v) got "<<  v  << std::endl;
@@ -346,9 +358,9 @@ bool Converter::visit_ (int16_t & v)
     msgpack_pack_int16(&pk, v);
     return true;
 }
-bool Converter::visit_ (uint16_t& v) 
+bool Converter::visit_ (uint16_t& v)
 {
-    if (debug) 
+    if (debug)
     {
         printBegin();
         std::cout << __FUNCTION__ << "(uint16_t& v) got "<<  v  << std::endl;
@@ -356,9 +368,9 @@ bool Converter::visit_ (uint16_t& v)
     msgpack_pack_uint16(&pk, v);
     return true;
 }
-bool Converter::visit_ (int32_t & v) 
+bool Converter::visit_ (int32_t & v)
 {
-    if (debug) 
+    if (debug)
     {
         printBegin();
         std::cout << __FUNCTION__ << "(int32_t & v) got "<<  v  << std::endl;
@@ -366,9 +378,9 @@ bool Converter::visit_ (int32_t & v)
     msgpack_pack_int32(&pk, v);
     return true;
 }
-bool Converter::visit_ (uint32_t& v) 
+bool Converter::visit_ (uint32_t& v)
 {
-    if (debug) 
+    if (debug)
     {
         printBegin();
         std::cout << __FUNCTION__ << "(uint32_t& v) got "<<  v  << std::endl;
@@ -376,9 +388,9 @@ bool Converter::visit_ (uint32_t& v)
     msgpack_pack_uint32(&pk, v);
     return true;
 }
-bool Converter::visit_ (int64_t & v) 
+bool Converter::visit_ (int64_t & v)
 {
-    if (debug) 
+    if (debug)
     {
         printBegin();
         std::cout << __FUNCTION__ << "(int64_t & v) got "<<  v  << std::endl;
@@ -386,18 +398,19 @@ bool Converter::visit_ (int64_t & v)
     msgpack_pack_int64(&pk, v);
     return true;
 }
-bool Converter::visit_ (uint64_t& v) 
+bool Converter::visit_ (uint64_t& v)
 {
-    if (debug) {
+    if (debug)
+    {
         printBegin();
         std::cout << __FUNCTION__ << "(uint64_t& v) got "<<  v  << std::endl;
     }
     msgpack_pack_uint64(&pk, v);
     return true;
 }
-bool Converter::visit_ (float   & v) 
+bool Converter::visit_ (float   & v)
 {
-    if (debug) 
+    if (debug)
     {
         printBegin();
         std::cout << __FUNCTION__ << "(float   & v) got "<<  v  << std::endl;
@@ -405,9 +418,9 @@ bool Converter::visit_ (float   & v)
     msgpack_pack_float(&pk, v);
     return true;
 }
-bool Converter::visit_ (double  & v) 
+bool Converter::visit_ (double  & v)
 {
-    if (debug) 
+    if (debug)
     {
         printBegin();
         std::cout << __FUNCTION__ << "(double  & v) got "<<  v  << std::endl;
@@ -419,7 +432,7 @@ bool Converter::visit_ (double  & v)
 
 bool Converter::visit_(Typelib::Value const& v, Typelib::OpaqueType const& type)
 {
-    if (debug) 
+    if (debug)
     {
         printBegin();
         std::cout << __FUNCTION__ << "OpaqueType at "<< v.getData() << std::endl;
@@ -429,7 +442,7 @@ bool Converter::visit_(Typelib::Value const& v, Typelib::OpaqueType const& type)
 
 bool Converter::visit_(Typelib::Value const& v, Typelib::Pointer const& type)
 {
-    if (debug) 
+    if (debug)
     {
         printBegin();
         std::cout << __FUNCTION__ << "Pointer at "<< v.getData() <<   std::endl;
@@ -444,7 +457,7 @@ bool Converter::visit_(Typelib::Value const& v, Typelib::Pointer const& type)
 
 bool Converter::visit_(Typelib::Value const& v, Typelib::Array const& type)
 {
-    if (debug) 
+    if (debug)
     {
         printBegin();
         std::cout << __FUNCTION__ << "Array at "<< v.getData() <<  std::endl;
@@ -465,14 +478,17 @@ bool Converter::visit_(Typelib::Value const& v, Typelib::Container const& type)
 {
     size_t numElements = type.getElementCount(v.getData());
 
-    if (debug) 
+    if (debug)
     {
-        printBegin(); std::cout << __FUNCTION__ << "Container at "<< v.getData() << std::endl;
-        printBegin(); std::cout << "numElements: " <<numElements << std::endl;
-        printBegin(); std::cout << type.kind() << "[" << numElements << "]" << std::endl;
+        printBegin();
+        std::cout << __FUNCTION__ << "Container at "<< v.getData() << std::endl;
+        printBegin();
+        std::cout << "numElements: " <<numElements << std::endl;
+        printBegin();
+        std::cout << type.kind() << "[" << numElements << "]" << std::endl;
     }
 
-    if(numElements > containerLimit) 
+    if(numElements > containerLimit)
     {
         throw std::runtime_error("too many elements");
     }
@@ -490,14 +506,16 @@ bool Converter::visit_(Typelib::Value const& v, Typelib::Container const& type)
 
         mode_numeric_to_string = false;
 
-        if (debug) {
+        if (debug)
+        {
             std::cout << "got str: \"" << numeric_to_string_buffer << "\""  << std::endl;
         }
 
         msgpack_pack_str(&pk, numeric_to_string_buffer.size());
         msgpack_pack_str_body(&pk, numeric_to_string_buffer.c_str(), numeric_to_string_buffer.size());
 
-    } else 
+    }
+    else
     {
 
         msgpack_pack_array(&pk, numElements);
@@ -512,7 +530,7 @@ bool Converter::visit_(Typelib::Value const& v, Typelib::Container const& type)
 
 bool Converter::visit_(Typelib::Value const& v, Typelib::Compound const& type)
 {
-    if (debug) 
+    if (debug)
     {
         printBegin();
         std::cout << "compound '" << type.getName() << "' with " << type.getFields().size() << " fields" << std::endl;
@@ -529,7 +547,7 @@ bool Converter::visit_(Typelib::Value const& v, Typelib::Compound const& type)
 
 bool Converter::visit_(Typelib::Value const& v, Typelib::Compound const& type, Typelib::Field const& field)
 {
-    if (debug) 
+    if (debug)
     {
         printBegin();
         std::cout << "field '" << field.getName() << "'" << std::endl;
@@ -549,7 +567,8 @@ bool Converter::visit_(Typelib::Value const& v, Typelib::Compound const& type, T
     return retval;
 }
 
-bool Converter::visit_(Typelib::Enum::integral_type& intValue, Typelib::Enum const& e) {
+bool Converter::visit_(Typelib::Enum::integral_type& intValue, Typelib::Enum const& e)
+{
     try
     {
         std::string value = e.get(intValue);
@@ -561,7 +580,7 @@ bool Converter::visit_(Typelib::Enum::integral_type& intValue, Typelib::Enum con
     {
         msgpack_pack_int(&pk, intValue);
         std::cerr << "[pocolog2msgpack] Could not find a string representation "
-            << "for enum value " << intValue << "." << std::endl;
+                  << "for enum value " << intValue << "." << std::endl;
     }
 
     return true;
