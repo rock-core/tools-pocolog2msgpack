@@ -20,12 +20,11 @@ int main(int argc, char *argv[])
             "Logfiles")
         ("output,o", boost::program_options::value<std::string>()->default_value("output.msg"),
             "Output file")
-        ("container-limit,c", boost::program_options::value<int>()->default_value(10000),
+        ("container-limit,c", boost::program_options::value<int>()->default_value(1000000),
             "Maximum length of a container that will be read and converted. "
-            "This option should only be used if you have old logfiles from "
-            "which we can't read the container size properly and have to limit "
-            "the size of containers. Otherwise sometimes the size is read "
-            "incorrectly and very large chunks of memory are converted.")
+            "This option should only be used for debugging purposes to prevent "
+            "conversion of large containers. It might not result in a correctly "
+            "converted logfile.")
         ("only", boost::program_options::value<std::string>()->default_value(""),
             "Only convert the port given by this argument.")
         ("start", boost::program_options::value<int>()->default_value(0),

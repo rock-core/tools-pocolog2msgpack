@@ -62,19 +62,13 @@ Options:
   -v [ --verbose ] arg (=0)             Verbosity level
   -l [ --logfile ] arg                  Logfiles
   -o [ --output ] arg (=output.msg)     Output file
-  -s [ --size ] arg (=8)                Length of the size type. This should be
-                                        8 for most machines, but it can be 1, 
-                                        e.g. on robots.
-  -c [ --container-limit ] arg (=300000)
+  -c [ --container-limit ] arg (=1000000)
                                         Maximum length of a container that will
                                         be read and converted. This option 
-                                        should only be used if you have old 
-                                        logfiles from which we can't read the 
-                                        container size properly and have to 
-                                        limit the size of containers. Otherwise
-                                        sometimes the size is read incorrectly 
-                                        and very large chunks of memory are 
-                                        converted.
+                                        should only be used for debugging 
+                                        purposes to prevent conversion of large
+                                        containers. It might not result in a 
+                                        correctly converted logfile.
   --only arg                            Only convert the port given by this 
                                         argument.
   --start arg (=0)                      Index of the first sample that will be 
