@@ -490,7 +490,11 @@ bool Converter::visit_(Typelib::Value const& v, Typelib::Container const& type)
 
     if(numElements > containerLimit)
     {
-        throw std::runtime_error("too many elements");
+        std::cerr << "[pocolog2msgpack] Container size " << numElements 
+                  << " exceeds limit of " << containerLimit << ". Skipping..."
+                  << std::endl;
+                  
+        return false;
     }
 
     bool retval = false;
