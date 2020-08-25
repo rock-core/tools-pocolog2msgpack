@@ -274,7 +274,6 @@ Converter::Converter(std::string const& basename, Typelib::Type const& type, msg
 
 Converter::~Converter()
 {
-    assert(!data);
 }
 
 void Converter::convertSample(std::vector<uint8_t>& data)
