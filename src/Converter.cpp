@@ -12,6 +12,8 @@
 #include <stdexcept>
 #include <cstdlib>
 #include <cassert>
+#include <typelib/value_ops.hh>
+#include <ios>
 
 void addValidInputDataStreams(
     const std::vector<pocolog_cpp::Stream*>& streams,
@@ -123,13 +125,22 @@ int convertStreams(
                 << " samples" << std::endl;
 
         const int realEnd = computeRangeEnd(start, end, stream->getSize(), true);
-        const int exportedSize = realEnd - start;
-
+        int exportedSize = realEnd - start;
+        
+        if (exportedSize < 0) {            
+            std::cerr << "[pocolog2msgpack] No samples in requested range for stream \"" 
+                      << streamName << "\"." << std::endl;
+            exportedSize = 0;
+        }
         msgpack_pack_str(&packer, streamName.size());
         msgpack_pack_str_body(&packer, streamName.c_str(), streamName.size());
-
+                
         msgpack_pack_array(&packer, exportedSize);
-        Converter conv(streamName, *stream->getType(), packer, size,
+        
+        if (exportedSize == 0)
+            continue;
+        
+        Converter conv(streamName, *stream->getType(), packer, 
                        containerLimit, verbose);
 
         exitStatus += convertSamples(conv, stream, start, realEnd, verbose);
@@ -141,21 +152,59 @@ int convertStreams(
 int convertSamples(Converter& conv, pocolog_cpp::InputDataStream* stream,
     const int start, const int end, const int verbose)
 {
+    
+    float next_report_progress = 0.0;
+    float report_progress_delta = 0.1;
+    
     for(size_t t = start; t < end; t++)
     {
-        std::vector<uint8_t> data;
-        const bool ok = stream->getSampleData(data, t);
+
+        if(verbose >= 2) {
+            std::cout << "[pocolog2msgpack] Converting sample #" << t
+                << std::endl;  
+        }
+        std::vector<uint8_t> curSampleData;
+        const bool ok = stream->getSampleData(curSampleData, t);
+        
         if(!ok)
         {
             std::cerr << "[pocolog2msgpack] ERROR: Could not read sample data."
                 << std::endl;
             return EXIT_FAILURE;
         }
+        
+        if(verbose >= 3) {        
+            std::cout << "Converting sample of size " << curSampleData.size() << std::endl;
+        }
+        
+        if(verbose >= 4){
+            for ( size_t i=0; i < curSampleData.size() ; i++ ){
+                if (i % 32 == 0) std::cout << std::endl;
+                std::ios_base::fmtflags f( std::cout.flags() );
+                std::cout << std::setfill('0') << std::setw(2) << std::right << std::hex << (unsigned int)(curSampleData[i]) << " ";
+                std::cout.flags( f );
+                std::cout << " ";
+                
+                if (i > 128) {
+                    std::cout << "...";
+                    break;
+                }
+            }
+            std::cout << std::endl;   
+        } 
 
-        if(verbose >= 2)
-            std::cout << "[pocolog2msgpack] Converting sample #" << t
-                << std::endl;
-        conv.convertSample(&data[0]);
+        conv.convertSample(curSampleData);
+        
+        float progress = ((float)(t-start))/(end-start);
+        
+        if ( progress >= next_report_progress ) {            
+            next_report_progress += report_progress_delta;
+            if (verbose >= 1) {
+                std::cout << "[pocolog2msgpack] " << (int)(progress*100) << "% of stream done." << std::endl;  
+            }
+        }
+        
+        
     }
     return EXIT_SUCCESS;
 }
@@ -176,6 +225,15 @@ int convertMetaData(
 
         const std::string key = stream->getName() + ".meta";
 
+        const int realEnd = computeRangeEnd(start, end, stream->getSize(), false);
+        int exportedSize = realEnd - start;
+        
+        if (exportedSize < 0) {            
+            std::cerr << "[pocolog2msgpack] No samples in requested range for meta stream \"" 
+                      << key << "\"." << std::endl;
+            exportedSize = 0;
+        }
+
         msgpack_pack_str(&packer, key.size());
         msgpack_pack_str_body(&packer, key.c_str(), key.size());
 
@@ -183,13 +241,16 @@ int convertMetaData(
 
         msgpack_pack_str(&packer, timeKey.size());
         msgpack_pack_str_body(&packer, timeKey.c_str(), timeKey.size());
-
-        const int realEnd = computeRangeEnd(start, end, stream->getSize(), false);
-        const int exportedSize = realEnd - start;
+        
+        
         msgpack_pack_array(&packer, exportedSize);
-        for(size_t t = start; t < realEnd; t++)
-            msgpack_pack_int64(&packer, streamIndex.getSampleTime(t).microseconds);
-
+        
+        if (exportedSize > 0) {            
+            for(size_t t = start; t < realEnd; t++) {
+                msgpack_pack_int64(&packer, streamIndex.getSampleTime(t).microseconds);
+            }
+        }
+        
         msgpack_pack_str(&packer, typeKey.size());
         msgpack_pack_str_body(&packer, typeKey.c_str(), typeKey.size());
         const std::string typeName = stream->getType()->getName();
@@ -200,11 +261,14 @@ int convertMetaData(
     return exitStatus;
 }
 
-Converter::Converter(std::string const& basename, Typelib::Type const& type, msgpack_packer& pk, int size, int containerLimit, int verbose)
-    : data(NULL), type(type), offset(0), part(false), pk(pk), size(size),
+Converter::Converter(std::string const& basename, Typelib::Type const& type, msgpack_packer& pk, int containerLimit, int verbose)
+    : type(type), pk(pk), 
       containerLimit(containerLimit), verbose(verbose), depth(0),
       indentation(1)
 {
+    
+    debug = (verbose > 3);    
+    
     fieldName.push_back(basename);
 }
 
@@ -213,21 +277,22 @@ Converter::~Converter()
     assert(!data);
 }
 
-void Converter::convertSample(uint8_t* data)
+void Converter::convertSample(std::vector<uint8_t>& data)
 {
-    assert(data);
-
+    std::vector<uint8_t> val_buffer;
+    val_buffer.resize(type.getSize());
+    auto val = Typelib::Value( val_buffer.data(), type );
+    Typelib::init( val );        
+    Typelib::load( val, data.data(), data.size() );        
+    
     reset();
-    this->data = data;
-    TypeVisitor::apply(type);
-    this->data = NULL;
+    ValueVisitor::apply(val);
+    Typelib::destroy( val );
+    
 }
 
 void Converter::reset()
 {
-    assert(!data);
-    offset = 0;
-    part = false;
     depth = 0;
 }
 
@@ -237,171 +302,227 @@ void Converter::printBegin()
         << std::setfill(' ') << std::setw(indentation + depth) << " ";
 }
 
-bool Converter::visit_(Typelib::OpaqueType const& type)
-{
+bool Converter::visit_ (int8_t  & v) { 
+    if (debug) {
+        printBegin();
+        std::cout << "got int8 " << (int)v << std::endl; 
+    }
+    
+    if (mode_numeric_to_string) {
+        numeric_to_string_buffer += (char)v;
+        return true; 
+    }
+    
+    msgpack_pack_int8(&pk, v);
+    return true; 
+}
+
+bool Converter::visit_ (uint8_t & v) { 
+    if (debug) {
+        printBegin();
+        std::cout << "got uint8 " << (unsigned int) v << std::endl; 
+    }
+    
+    if (mode_numeric_to_string) {
+        numeric_to_string_buffer += (char)v;
+        return true; 
+    }
+    
+    msgpack_pack_uint8(&pk, v);    
+    return true; 
+}
+
+bool Converter::visit_ (int16_t & v) { 
+    if (debug) {
+        printBegin();
+        std::cout << __FUNCTION__ << "(int16_t & v) got "<<  v  << std::endl;
+    }    
+    msgpack_pack_int16(&pk, v);    
+    return true; 
+}
+bool Converter::visit_ (uint16_t& v) { 
+    if (debug) {
+        printBegin();
+        std::cout << __FUNCTION__ << "(uint16_t& v) got "<<  v  << std::endl;  
+    }  
+    msgpack_pack_uint16(&pk, v);    
+    return true;
+}
+bool Converter::visit_ (int32_t & v) { 
+    if (debug) {
+        printBegin();
+        std::cout << __FUNCTION__ << "(int32_t & v) got "<<  v  << std::endl; 
+    }   
+    msgpack_pack_int32(&pk, v);    
+    return true;
+}
+bool Converter::visit_ (uint32_t& v) { 
+    if (debug) {
+        printBegin();
+        std::cout << __FUNCTION__ << "(uint32_t& v) got "<<  v  << std::endl; 
+    }   
+    msgpack_pack_uint32(&pk, v);    
+    return true;
+}
+bool Converter::visit_ (int64_t & v) { 
+    if (debug) {
+        printBegin();
+        std::cout << __FUNCTION__ << "(int64_t & v) got "<<  v  << std::endl;
+    }    
+    msgpack_pack_int64(&pk, v);    
+    return true;
+}
+bool Converter::visit_ (uint64_t& v) { 
+    if (debug) {
+        printBegin();
+        std::cout << __FUNCTION__ << "(uint64_t& v) got "<<  v  << std::endl;  
+    }  
+    msgpack_pack_uint64(&pk, v);    
+    return true;
+}
+bool Converter::visit_ (float   & v) { 
+    if (debug) {
+        printBegin();
+        std::cout << __FUNCTION__ << "(float   & v) got "<<  v  << std::endl;
+    }
+    msgpack_pack_float(&pk, v);
+    return true;
+}
+bool Converter::visit_ (double  & v) { 
+    if (debug) {
+        printBegin();
+        std::cout << __FUNCTION__ << "(double  & v) got "<<  v  << std::endl;  
+    }  
+    msgpack_pack_double(&pk, v);
+    
     return true;
 }
 
-bool Converter::visit_(Typelib::Numeric const& type)
+bool Converter::visit_(Typelib::Value const& v, Typelib::OpaqueType const& type)
 {
-    switch(type.getNumericCategory())
-    {
-    case Typelib::Numeric::SInt:
-        lastNumber = getSignedInt(type, part);
-        break;
-    case Typelib::Numeric::UInt:
-        lastNumber = getUnsignedInt(type, part); // FIXME bug
-        break;
-    case Typelib::Numeric::Float:
-        lastFloat = getFloat(type, part);
-        break;
-    default:
-        throw std::runtime_error("unknown numeric type");
+    if (debug) {
+        printBegin();
+        std::cout << __FUNCTION__ << "OpaqueType at "<< v.getData() << std::endl;
     }
-    offset += type.getSize();
     return true;
 }
 
-unsigned int Converter::getUnsignedInt(Typelib::Numeric const& type, bool part)
+bool Converter::visit_(Typelib::Value const& v, Typelib::Pointer const& type)
 {
-    if(!part && verbose >= 3 + depth)
-    {
+    if (debug) {
         printBegin();
-        std::cout << "uint" << 8 * type.getSize();
+        std::cout << __FUNCTION__ << "Pointer at "<< v.getData() <<   std::endl;
     }
-
-    unsigned int i = 0;
-    switch(type.getSize())
-    {
-    case 1:
-        i = *reinterpret_cast<uint8_t*>(data + offset);
-        if(!part)
-            msgpack_pack_uint8(&pk, *reinterpret_cast<uint8_t*>(data + offset));
-        break;
-    case 2:
-        i = *reinterpret_cast<uint16_t*>(data + offset);
-        if(!part)
-            msgpack_pack_uint16(&pk, *reinterpret_cast<uint16_t*>(data + offset));
-        break;
-    case 4:
-        i = *reinterpret_cast<uint32_t*>(data + offset);
-        if(!part)
-            msgpack_pack_uint32(&pk, *reinterpret_cast<uint32_t*>(data + offset));
-        break;
-    case 8:
-        i = *reinterpret_cast<uint64_t*>(data + offset);
-        if(!part)
-            msgpack_pack_uint64(&pk, *reinterpret_cast<uint64_t*>(data + offset));
-        break;
-    default:
-        throw std::runtime_error(
-            "unknown uint size: " +
-            boost::lexical_cast<std::string>(type.getSize()));
-    }
-
-    if(!part && verbose >= 3 + depth)
-    {
-        if(verbose >= 4 + depth)
-            std::cout << ": " << i;
-        std::cout << std::endl;
-    }
-
-    return i;
+    
+    depth += 1;
+    auto retval = Typelib::ValueVisitor::visit_(v, type);
+    depth -= 1;
+    
+    return retval;
 }
 
-signed int Converter::getSignedInt(Typelib::Numeric const& type, bool part)
+bool Converter::visit_(Typelib::Value const& v, Typelib::Array const& type)
 {
-    if(!part && verbose >= 3 + depth)
-    {
+    if (debug) {
+        printBegin(); 
+        std::cout << __FUNCTION__ << "Array at "<< v.getData() <<  std::endl;
         printBegin();
-        std::cout << "int" << 8 * type.getSize();
+        std::cout << "array[" << type.getDimension() << "]" << std::endl;
     }
 
-    signed int i = 0;
-    switch(type.getSize())
-    {
-    case 1:
-        i = *reinterpret_cast<int8_t*>(data + offset);
-        if(!part)
-            msgpack_pack_int8(&pk, *reinterpret_cast<int8_t*>(data + offset));
-        break;
-    case 2:
-        i = *reinterpret_cast<int16_t*>(data + offset);
-        if(!part)
-            msgpack_pack_int16(&pk, *reinterpret_cast<int16_t*>(data + offset));
-        break;
-    case 4:
-        i = *reinterpret_cast<int32_t*>(data + offset);
-        if(!part)
-            msgpack_pack_int32(&pk, *reinterpret_cast<int32_t*>(data + offset));
-        break;
-    case 8:
-        i = *reinterpret_cast<int64_t*>(data + offset);
-        if(!part)
-            msgpack_pack_int64(&pk, *reinterpret_cast<int64_t*>(data + offset));
-        break;
-    default:
-        throw std::runtime_error(
-            "unknown sint size: " +
-            boost::lexical_cast<std::string>(type.getSize()));
-    }
-
-    if(!part && verbose >= 3 + depth)
-    {
-        if(verbose >= 4 + depth)
-            std::cout << ": " << i;
-        std::cout << std::endl;
-    }
-
-    return i;
+    msgpack_pack_array(&pk, type.getDimension());
+    
+    depth += 1;
+    auto retval = Typelib::ValueVisitor::visit_(v, type);
+    depth -= 1;
+    
+    return retval;
 }
 
-double Converter::getFloat(Typelib::Numeric const& type, bool part)
+bool Converter::visit_(Typelib::Value const& v, Typelib::Container const& type)
 {
-    if(!part && verbose >= 3 + depth)
-    {
-        printBegin();
-        std::cout << "float" << 8 * type.getSize();
+    size_t numElements = type.getElementCount(v.getData());
+    
+    if (debug) {        
+        printBegin(); std::cout << __FUNCTION__ << "Container at "<< v.getData() << std::endl;    
+        printBegin(); std::cout << "numElements: " <<numElements << std::endl;
+        printBegin(); std::cout << type.kind() << "[" << numElements << "]" << std::endl;
+    }
+    
+    if(numElements > containerLimit) {
+        throw std::runtime_error("too many elements");
     }
 
-    double i = NAN;
-    switch(type.getSize())
+    bool retval = false;
+    
+    if(type.kind() == "/std/string")
     {
-    case 4:
-        i = *reinterpret_cast<float*>(data + offset);
-        msgpack_pack_float(&pk, *reinterpret_cast<float*>(data + offset));
-        break;
-    case 8:
-        i = *reinterpret_cast<double*>(data + offset);
-        msgpack_pack_double(&pk, *reinterpret_cast<double*>(data + offset));
-        break;
-    default:
-        throw std::runtime_error(
-            "unknown float size: "
-            + boost::lexical_cast<std::string>(type.getSize()));
-    }
+        numeric_to_string_buffer = "";
+        mode_numeric_to_string = true;
+        
+        depth += 1;              
+        retval = Typelib::ValueVisitor::visit_(v, type); 
+        depth -= 1;
+        
+        mode_numeric_to_string = false;        
+        
+        if (debug) {
+            std::cout << "got str: \"" << numeric_to_string_buffer << "\""  << std::endl;
+        }
+        
+        msgpack_pack_str(&pk, numeric_to_string_buffer.size());
+        msgpack_pack_str_body(&pk, numeric_to_string_buffer.c_str(), numeric_to_string_buffer.size());
+        
+    } else {
+    
+        msgpack_pack_array(&pk, numElements);
 
-    if(!part && verbose >= 3 + depth)
-    {
-        if(verbose >= 4 + depth)
-            std::cout << ": " << i;
-        std::cout << std::endl;
+        depth += 1;        
+        retval = Typelib::ValueVisitor::visit_(v, type); 
+        depth -= 1;
     }
-
-    return i;
+    
+    return retval;
 }
 
-bool Converter::visit_(Typelib::Enum const& e)
+bool Converter::visit_(Typelib::Value const& v, Typelib::Compound const& type)
 {
-    if(!part && verbose >= 3 + depth)
-    {
+    if (debug) {
         printBegin();
-        std::cout << "enum" << std::endl;
+        std::cout << "compound '" << type.getName() << "' with " << type.getFields().size() << " fields" << std::endl;
     }
 
-    Typelib::Enum::integral_type intValue =
-        *reinterpret_cast<Typelib::Enum::integral_type*>(data + offset);
-    offset += sizeof(Typelib::Enum::integral_type);
+    msgpack_pack_map(&pk, type.getFields().size());
+    
+    depth += 1;
+    auto retval = Typelib::ValueVisitor::visit_(v, type);
+    depth -= 1;
+    
+    return retval;
+}
+
+bool Converter::visit_(Typelib::Value const& v, Typelib::Compound const& type, Typelib::Field const& field)
+{
+    if (debug) {
+        printBegin();
+        std::cout << "field '" << field.getName() << "'" << std::endl;
+    }
+
+    msgpack_pack_str(&pk, field.getName().size());
+    msgpack_pack_str_body(&pk, field.getName().c_str(), field.getName().size());
+
+    fieldName.push_back(field.getName());
+    
+    depth += 1;
+    auto retval = Typelib::ValueVisitor::visit_(v, type, field);
+    depth -= 1;
+    
+    fieldName.pop_back();
+    
+    return retval;
+}
+
+bool Converter::visit_(Typelib::Enum::integral_type& intValue, Typelib::Enum const& e) {
     try
     {
         std::string value = e.get(intValue);
@@ -411,194 +532,10 @@ bool Converter::visit_(Typelib::Enum const& e)
     }
     catch(Typelib::Enum::ValueNotFound& e)
     {
-        msgpack_pack_int16(&pk, intValue);
+        msgpack_pack_int(&pk, intValue);
         std::cerr << "[pocolog2msgpack] Could not find a string representation "
             << "for enum value " << intValue << "." << std::endl;
     }
-
-    return true;
-}
-
-bool Converter::visit_(Typelib::Pointer const& type)
-{
-    if(!part && verbose >= 3 + depth)
-    {
-        printBegin();
-        std::cout << "pointer" << std::endl;
-    }
-
-    depth += 1;
-    TypeVisitor::visit_(type);
-    depth -= 1;
-    return true;
-}
-
-bool Converter::visit_(Typelib::Array const& type)
-{
-    const size_t numElements = type.getDimension();
-    double d[numElements];
-
-    if(!part && verbose >= 3 + depth)
-    {
-        printBegin();
-        std::cout << "array[" << numElements << "]" << std::endl;
-    }
-
-    msgpack_pack_array(&pk, numElements);
-    depth += 1;
-    for(size_t i = 0; i < numElements; i++)
-    {
-        visit_(type.getIndirection());
-        d[i] = lastFloat;
-    }
-    depth -= 1;
-    return true;
-}
-
-bool Converter::visit_(Typelib::Container const& type)
-{
-    // TODO Is there a way to determine 'size' automatically?
-    size_t numElements;
-    switch(size)
-    {
-    case 1:
-        numElements = *reinterpret_cast<uint8_t*>(data + offset);
-        break;
-    case 2:
-        numElements = *reinterpret_cast<uint16_t*>(data + offset);
-        break;
-    case 4:
-        numElements = *reinterpret_cast<uint32_t*>(data + offset);
-        break;
-    case 8:
-        numElements = *reinterpret_cast<uint64_t*>(data + offset);
-        break;
-    default:
-        throw std::runtime_error(
-            "Unknown size type size, should be one of 1, 2, 4, 8");
-    }
-    offset += size;
-
-    if(numElements > containerLimit)
-    {
-        // HACK Sometimes we are starting at the wrong offset, we have to
-        //      ignore some padding bytes... Don't try this at home!
-        size_t paddingOffset = 0;
-        const size_t MAXIMUM_ALLOWED_PADDING = 7;
-        for(paddingOffset = 0; paddingOffset <= MAXIMUM_ALLOWED_PADDING;
-            paddingOffset++)
-        {
-            if(*(data + offset - size + paddingOffset) != 0)
-                break;
-        }
-        size_t paddedNumElements = 0;
-        switch(size)  // TODO refactor
-        {
-        case 1:
-            paddedNumElements = *reinterpret_cast<uint8_t*>(
-                data + offset - size + paddingOffset);
-            break;
-        case 2:
-            paddedNumElements = *reinterpret_cast<uint16_t*>(
-                data + offset - size + paddingOffset);
-            break;
-        case 4:
-            paddedNumElements = *reinterpret_cast<uint32_t*>(
-                data + offset - size + paddingOffset);
-            break;
-        case 8:
-            paddedNumElements = *reinterpret_cast<uint64_t*>(
-                data + offset - size + paddingOffset);
-            break;
-        default:
-            throw std::runtime_error(
-                "Unknown size type size, should be one of 1, 2, 4, 8");
-        }
-        bool padded = paddedNumElements < containerLimit;
-        std::cerr << "[pocolog2msgpack] WARNING: container limit exceeded, ";
-        if(padded)
-        {
-            numElements = paddedNumElements;
-            offset += paddingOffset;
-            std::cerr << "ignoring " << paddingOffset << " padding bytes"
-                << std::endl;
-        }
-        else
-        {
-            numElements = containerLimit;
-            std::cerr << "truncating " << type.kind() << "! (" << numElements
-                << " > " << containerLimit << ")" << std::endl;
-        }
-    }
-
-    if(!part && verbose >= 3 + depth)
-    {
-        printBegin();
-        std::cout << type.kind() << "[" << numElements << "]" << std::endl;
-    }
-
-    if(type.kind() == "/std/string")
-    {
-        part = true;
-        std::string s;
-        depth += 1;
-        for(size_t i = 0; i < numElements; i++)
-        {
-            visit_(type.getIndirection());
-            s += (char) lastNumber;
-        }
-        part = false;
-        depth -= 1;
-
-        msgpack_pack_str(&pk, numElements);
-        msgpack_pack_str_body(&pk, s.c_str(), numElements);
-    }
-    else if(type.kind() == "/std/vector")
-    {
-        msgpack_pack_array(&pk, numElements);
-
-        depth += 1;
-        for(size_t i = 0; i < numElements; i++)
-            visit_(type.getIndirection());
-        depth -= 1;
-    }
-    else
-    {
-        throw std::runtime_error("unknown container");
-    }
-    return true;
-}
-
-bool Converter::visit_(Typelib::Compound const& type)
-{
-    if(!part && verbose >= 3 + depth)
-    {
-        printBegin();
-        std::cout << "compound '" << type.getName() << "'" << std::endl;
-    }
-
-    msgpack_pack_map(&pk, type.getFields().size());
-    depth += 1;
-    TypeVisitor::visit_(type);
-    depth -= 1;
-    return true;
-}
-
-bool Converter::visit_(Typelib::Compound const& type, Typelib::Field const& field)
-{
-    if(!part && verbose >= 3 + depth)
-    {
-        printBegin();
-        std::cout << "field '" << field.getName() << "'" << std::endl;
-    }
-
-    msgpack_pack_str(&pk, field.getName().size());
-    msgpack_pack_str_body(&pk, field.getName().c_str(), field.getName().size());
-
-    fieldName.push_back(field.getName());
-    depth += 1;
-    TypeVisitor::visit_(type, field);
-    depth -= 1;
-    fieldName.pop_back();
+    
     return true;
 }

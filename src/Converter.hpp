@@ -3,6 +3,7 @@
 #include <msgpack/fbuffer.h>
 #include <typelib/typemodel.hh>
 #include <typelib/typevisitor.hh>
+#include <typelib/value.hh>
 
 
 /**
@@ -29,52 +30,54 @@ int convert(const std::vector<std::string>& logfiles, const std::string& output,
  * and stores it in MessagePack format. The typelib type information must be
  * provided.
  */
-class Converter : public Typelib::TypeVisitor
+class Converter : public Typelib::ValueVisitor
 {
-    /** Pointer to the serialized typelib type. */
-    uint8_t* data;
     /** Typelib's type description. */
     Typelib::Type const& type;
-    /** Size of the size type for containers in the logfile. */
-    int size;
     /** Maximum lenght of a container that will be converted. */
     int containerLimit;
-    /** Current memory offset of the converter, e.g. might point to a field of a compound. */
-    size_t offset;
-    /** Flag that is true while converting container types. */
-    bool part;
-    /** Stores the last integer. Is required to build strings from its characters. */
-    unsigned int lastNumber;
-    /** Stores the last floating point number. Is required to build arrays from its entries. */
-    double lastFloat;
     /** Current field name of a compound type. */
     std::list<std::string> fieldName;
     /** All data will be put in this packer. */
     msgpack_packer& pk;
     /** Verbosity level. */
     int verbose;
+    /** debug output. */
+    bool debug;
     /** Current depth in the type hierarchy. */
     int depth;
     /** A constant that will be used to format debug output on stdout. */
     const int indentation;
+    
+    bool mode_numeric_to_string = false;
+    
+    std::string numeric_to_string_buffer = "";
+    
 public:
-    Converter(std::string const& basename, Typelib::Type const& type, msgpack_packer& pk, int size, int containerLimit, int verbose);
+    Converter(std::string const& basename, Typelib::Type const& type, msgpack_packer& pk, int containerLimit, int verbose);
     virtual ~Converter();
-    void convertSample(uint8_t* data);
+    void convertSample(std::vector<uint8_t>& data);
 protected:
-    bool visit_(Typelib::OpaqueType const& type);
-    bool visit_(Typelib::Numeric const& type);
-    unsigned int getUnsignedInt(Typelib::Numeric const& type, bool part);
-    signed int getSignedInt(Typelib::Numeric const& type, bool part);
-    double getFloat(Typelib::Numeric const& type, bool part);
-    bool visit_(Typelib::Enum const&);
-    bool visit_(Typelib::Pointer const& type);
-    bool visit_(Typelib::Array const& type);
-    bool visit_(Typelib::Container const& type);
-    bool visit_(Typelib::Compound const& type);
-    bool visit_(Typelib::Compound const& type, Typelib::Field const& field);
-
-    using TypeVisitor::visit_;
+    bool visit_ (int8_t  & v);
+    bool visit_ (uint8_t & v);
+    bool visit_ (int16_t & v);
+    bool visit_ (uint16_t& v);
+    bool visit_ (int32_t & v);
+    bool visit_ (uint32_t& v);
+    bool visit_ (int64_t & v);
+    bool visit_ (uint64_t& v);
+    bool visit_ (float   & v);
+    bool visit_ (double  & v);
+    
+    bool visit_(Typelib::Value const& v, Typelib::OpaqueType const& type);
+    bool visit_(Typelib::Value const& v, Typelib::Pointer const& type);
+    bool visit_(Typelib::Value const& v, Typelib::Array const& type);
+    bool visit_(Typelib::Value const& v, Typelib::Container const& type);
+    bool visit_(Typelib::Value const& v, Typelib::Compound const& type);
+    bool visit_(Typelib::Value const& v, Typelib::Compound const& type, Typelib::Field const& field);
+    bool visit_(Typelib::Enum::integral_type&, Typelib::Enum const& e);
+    
+    using ValueVisitor::visit_;
 private:
     void reset();
     void printBegin();
