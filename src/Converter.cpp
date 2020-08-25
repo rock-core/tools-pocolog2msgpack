@@ -483,7 +483,7 @@ bool Converter::visit_(Typelib::Value const& v, Typelib::Container const& type)
         printBegin();
         std::cout << __FUNCTION__ << "Container at " << v.getData() << std::endl;
         printBegin();
-        std::cout << "numElements: " <<numElements << std::endl;
+        std::cout << "numElements: " << numElements << std::endl;
         printBegin();
         std::cout << type.kind() << "[" << numElements << "]" << std::endl;
     }
