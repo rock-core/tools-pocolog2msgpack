@@ -30,7 +30,7 @@ def object2relational(input_filename, output_filename, whitelist=()):
         a JointState object.
     """
     with open(input_filename, "rb") as f:
-        log = msgpack.unpack(f, encoding="utf8")
+        log = msgpack.unpack(f)
     port_names = [k for k in log.keys() if not k.endswith(".meta")]
     converted_log = dict()
     for port_name in port_names:
