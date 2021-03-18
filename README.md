@@ -117,6 +117,17 @@ There is a slight runtime overhead for creating and destroying the docker
 container. Since logfile conversions are not supposed to happen that often
 it can be ignored though.
 
+## Possible Errors
+
+### Outdated Data Types (Segmentation Fault)
+
+A logfile might contain an old version of a data type. Running pocolog2msgpack
+will result in a segmentation fault when it tries to convert the outdated
+sample. We have to preprocess the logfile to be able to convert it in this
+case. See
+[converting logfiles](https://www.rock-robotics.org/documentation/data_analysis/converting_logfiles.html)
+for further instructions.
+
 ## Loading Logs in Python
 
 Loading the converted logfiles in Python is as simple as those two lines:
