@@ -1,4 +1,4 @@
-FROM ubuntu:19.10
+FROM ubuntu:20.04
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && \
@@ -29,10 +29,11 @@ RUN apt-get update && \
       libboost-system-dev \
       libboost-thread-dev \
       libopenscenegraph-dev \
-      libqt4-dev \
-      libqt4-opengl-dev \
-      libxml2-dev \
-      qt4-qmake
+      libxml2-dev
+      #libqt4-dev \
+      #libqt4-opengl-dev \
+      #libxml2-dev \
+      #qt4-qmake
 
 SHELL ["/bin/bash", "-c"]
 
@@ -49,7 +50,7 @@ COPY overrides.rb /opt/rock/autoproj
 COPY overrides.yml /opt/rock/autoproj
 RUN source env.sh && autoproj update --no-interactive
 RUN source env.sh && autoproj build --no-interactive
-RUN git clone https://github.com/msgpack/msgpack-c.git tools/msgpack-c --depth 1
+RUN git clone https://github.com/msgpack/msgpack-c.git tools/msgpack-c --depth 1 --branch cpp-3.1.1
 RUN source env.sh && autoproj build tools/msgpack-c --no-interactive
 
 # Reset git configuration
