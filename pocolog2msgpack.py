@@ -49,7 +49,7 @@ def _extract_keys(sample, whitelist=(), keys=()):
         for k in sample.keys():
             result.extend(_extract_keys(sample[k], whitelist, keys + (k,)))
         return result
-    elif isinstance(sample, list) and (".".join(keys) in whitelist):
+    elif isinstance(sample, list) and (".".join([str(key) for key in keys]) in whitelist):
         result = []
         for i in range(len(sample)):
             result.extend(_extract_keys(sample[i], whitelist, keys + (i,)))
