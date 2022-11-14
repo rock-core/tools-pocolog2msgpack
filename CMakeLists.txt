@@ -18,7 +18,7 @@ link_directories(
 add_executable(pocolog2msgpack src/pocolog2msgpack.cpp src/Converter.cpp)
 target_link_libraries(
     pocolog2msgpack
-    ${POCOLOG_CPP_LIBRARIES} ${TYPELIB_LIBRARIES} ${Boost_LIBRARIES} ${MSGPACK_LIBRARIES}
+    ${POCOLOG_CPP_LIBRARIES} ${TYPELIB_LIBRARIES} ${Boost_LIBRARIES} ${MSGPACK_LIBRARIES} z
 )
 install(
     TARGETS pocolog2msgpack
