@@ -28,6 +28,8 @@ int convertStreams(
 
 FILE* fp;
 msgpack_zbuffer zbuf;
+unsigned long totalBytesIn = 0;
+unsigned long totalBytesOut = 0;
 
 bool writeOutZBuffer(bool force=true, bool flush=false) {
     
@@ -39,7 +41,7 @@ bool writeOutZBuffer(bool force=true, bool flush=false) {
     }
     
     auto cur_size = msgpack_zbuffer_size(&zbuf);
-    if ( (force || flush || zbuf.stream.avail_out < 128*1024) && cur_size > 0) {
+    if ( force || flush || cur_size > 1024*1024 ) {
         auto written = fwrite( msgpack_zbuffer_data(&zbuf), sizeof(char), cur_size, fp);
         if (written != cur_size) {
             //std::cout << "commanded write " << cur_size << ", written " << written << std::endl;
@@ -50,6 +52,8 @@ bool writeOutZBuffer(bool force=true, bool flush=false) {
     }
     
     if (flush) {
+        totalBytesIn += zbuf.stream.total_in;
+        totalBytesOut += zbuf.stream.total_out;
         msgpack_zbuffer_reset(&zbuf);
     }
     
@@ -75,7 +79,7 @@ int convert(
     msgpack_packer packer;
 
     if (compress) {
-        msgpack_zbuffer_init(&zbuf, 9 , 32*1024*1024);
+        msgpack_zbuffer_init(&zbuf, 7 , 2*1024*1024);
         msgpack_packer_init(&packer, &zbuf, msgpack_zbuffer_write);
     } else {
         msgpack_packer_init(&packer, fp, msgpack_fbuffer_write);
@@ -99,7 +103,22 @@ int convert(
     
     
     if (compress) {
+                 
         writeOutZBuffer(true, true);
+        
+        if(verbose >= 1) {
+            std::cout << "[pocolog2msgpack] Uncompressed data: " 
+                << totalBytesIn
+                << " bytes , compressed data: " 
+                << totalBytesOut
+                << " bytes, ratio: ";
+                
+            if (totalBytesIn > 0)
+                std::cout << (int)((100*(float)totalBytesOut)/totalBytesIn) << "%\n";
+            else
+                std::cout << "--%\n";
+        }
+        
         msgpack_zbuffer_destroy(&zbuf);
     }
     
@@ -784,6 +803,7 @@ int Converter::convertSamples(
         std::vector<std::vector<std::string>> nv_paths;
         std::vector<std::string> toplevelPath = {stream->getName()};
         inspectTypeLevels(*cur_type, toplevelPath, paths); 
+        // todo: handle streams with the same name
         
         std::string curPath;
         
