@@ -192,7 +192,7 @@ int convertStreams(
         const int realEnd = computeRangeEnd(start, end, stream->getSize(), true);
         int exportedSize = realEnd - start;
 
-        if (exportedSize < 0)
+        if (exportedSize <= 0)
         {
             std::cerr << "[pocolog2msgpack] No samples in requested range for stream \""
                       << streamName << "\"." << std::endl;
@@ -610,7 +610,7 @@ int Converter::convertMetaData(
     const int realEnd = computeRangeEnd(start, end, stream->getSize(), false);
     int exportedSize = realEnd - start;
 
-    if(exportedSize < 0)
+    if(exportedSize <= 0)
     {
         std::cerr << "[pocolog2msgpack] No samples in requested range for meta stream \""
                     << key << "\"." << std::endl;
@@ -697,6 +697,11 @@ int Converter::convertSamples(
     const float reportProgressDelta = 0.1;
     float nextReportProgress = reportProgressDelta;
 
+    if (start < 0 || end < start) {        
+        throw(std::invalid_argument("start sample index must be positive and end index must not be smaller than start index."));
+    }
+    
+    // it is safe to subtract now
     auto number_of_samples = end - start;
     
     
@@ -814,7 +819,8 @@ int Converter::convertSamples(
             msgpack_pack_str_body(&pk, curPath.c_str(), curPath.size());
             
         
-            if (align_named_vector && 
+            if (number_of_samples > 0 &&
+                align_named_vector && 
                 p.back() == "names" && 
                 Converter::isNamedVectorField(*cur_type, toplevelPath, p)
             ) {
@@ -825,7 +831,6 @@ int Converter::convertSamples(
                 msgpack_pack_array(&pk, number_of_samples);
             }
             
-            // todo: end < or <= ??
             for (size_t cur_idx=start; cur_idx<end; cur_idx++) { 
                 
 //                 if (buffer_cache.size() < cur_idx-start+1) {
