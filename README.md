@@ -77,6 +77,18 @@ Options:
   --end arg (=-1)                       Index after the last sample that will 
                                         be exported. This option is only useful
                                         if only one stream will be exported.
+  --align_named_vector                  For named vector types, order the 
+                                        elements by the names of the first 
+                                        sample. Only one names vector valid for
+                                        all samples will be included in the 
+                                        output. Only works with --flatten.
+  --flatten                             With --flatten, all nested field names 
+                                        are joined into top level keys. This 
+                                        makes the data fields directly 
+                                        accessible.
+  --compress                            Compress the output using msgpack's 
+                                        zlib compression.
+
 ```
 
 Example:
@@ -102,6 +114,8 @@ indices 0 and 1 will be converted to the output file.
     [pocolog2msgpack] Stream #0 (/message_producer.messages): 2 samples
     [pocolog2msgpack] Converting sample #0
 
+`pocolog2msgpack -v 1 --start=0 --end=1 --flatten --align_named_vector --compress -l *072_crex_ft*.log -l *072_crex_legs*.log  -o 20221013154136.072_data_obj.msg.zz`
+    
 ## Without Installation
 
 If you have docker and you do not want to install anything you can use our
@@ -130,12 +144,18 @@ for further instructions.
 
 ## Loading Logs in Python
 
-Loading the converted logfiles in Python is as simple as those two lines:
+Loading a uncompressed converted logfile in Python is as simple as those two lines:
 
 ```python
 import msgpack
-log = msgpack.unpack(open("output.msg", "rb"), encoding="utf8")
+log = msgpack.unpack(open("output.msg", "rb"))
 ```
+
+For a more advanced loading of log files, have a look at the Python package 
+pocolog2msgpack.
+
+Note 1: This loads the complete log file into memory at once.
+Note 2: In older versions of msgpack, `encoding="utf8"` may be needed.
 
 Make sure that msgpack-python is installed
 (e.g. `sudo pip3 install msgpack-python`).
@@ -153,59 +173,6 @@ Typelib.
 
 There are several examples of how to use the tool and how to load data in
 Python in the test folder.
-
-## Conversion to Relational Format
-
-There is an optional Python package 'pocolog2msgpack' that will be installed
-only if you have Python on your system. It can be used to convert data
-from object-oriented format to a relational format so that you can convert it
-directly to a [pandas.DataFrame](http://pandas.pydata.org/):
-
-```python
-import msgpack
-import pocolog2msgpack
-import pandas
-pocolog2msgpack.object2relational(logfile, logfile_relational)
-log = msgpack.unpack(open(logfile_relational, "rb"), encoding="utf8")
-df = pandas.DataFrame(log[port_name])
-# use the timestamp as an index:
-df.set_index("timestamp", inplace=True)
-# order columns alphabetically:
-df.reindex_axis(sorted(df.columns), axis=1, copy=False)
-```
-
-Vectors or arrays will usually not be unravelled automatically even if they
-have the same size in each sample. You have to whitelist them manually, e.g.
-
-```python
-pocolog2msgpack.object2relational(
-    logfile, logfile_relational, whitelist=["elements", "names"])
-```
-
-This will result in unravelled base::samples::Joints object in this case:
-
-```
-{
-    '/message_producer.messages':
-    {
-        'elements.1.position': [2.0, 2.0],
-        'time.microseconds': [1502180215405251, 1502180216405234],
-        'elements.1.raw': [nan, nan],
-        'elements.0.raw': [nan, nan],
-        'timestamp': [1502180215405385, 1502180216405284],
-        'elements.0.acceleration': [nan, nan],
-        'elements.1.speed': [nan, nan],
-        'names.1': ['j2', 'j2'],
-        'elements.1.acceleration': [nan, nan],
-        'names.0': ['j1', 'j1'],
-        'elements.0.speed': [nan, nan],
-        'elements.1.effort': [nan, nan],
-        'elements.0.position': [1.0, 1.0],
-        'type': ['/base/samples/Joints', '/base/samples/Joints'],
-        'elements.0.effort': [nan, nan]
-    }
-}
-```
 
 ## Tests
 
