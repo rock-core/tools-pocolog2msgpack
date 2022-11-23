@@ -31,9 +31,11 @@ def test_help():
 
 
 def test_verbose():
-    proc = pexpect.spawn("pocolog2msgpack -v 5 -l test/data/integers.0.log")
-    proc.expect("Verbosity level is 5")
-    proc.expect(pexpect.EOF)
+    output = "output.msg"
+    with cleanup(output):
+        proc = pexpect.spawn("pocolog2msgpack -v 5 -l test/data/integers.0.log -o %s" % output)
+        proc.expect("Verbosity level is 5")
+        proc.expect(pexpect.EOF)
 
 
 def test_convert_integers():
