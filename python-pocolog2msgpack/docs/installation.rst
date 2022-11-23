@@ -30,18 +30,18 @@ Once you have a copy of the source, you can install it with:
 .. _Github repo: https://github.com/rock-core/tools-pocolog2msgpack
 
 
-Stable release
---------------
-
-To install pocolog2msgpack, run this command in your terminal:
-
-.. code-block:: console
-
-    $ pip install pocolog2msgpack
-
-If you don't have `pip`_ installed, this `Python installation guide`_ can guide
-you through the process.
-
-.. _pip: https://pip.pypa.io
-.. _Python installation guide: http://docs.python-guide.org/en/latest/starting/installation/
+.. Stable release
+.. --------------
+..
+.. To install pocolog2msgpack, run this command in your terminal:
+..
+.. .. code-block:: console
+..
+..     $ pip install pocolog2msgpack
+..
+.. If you don't have `pip`_ installed, this `Python installation guide`_ can guide
+.. you through the process.
+..
+.. .. _pip: https://pip.pypa.io
+.. .. _Python installation guide: http://docs.python-guide.org/en/latest/starting/installation/
 
