@@ -53,8 +53,7 @@ your manifest:
 
 ## Usage
 
-This repository contains a program that will convert between both log
-formats. It is called `pocolog2msgpack`. These are its options:
+This repository contains a program that will convert files from the pocolog log format to MessagePack format. It is called `pocolog2msgpack`. These are its options:
 
 ```
 Options:
@@ -144,7 +143,7 @@ for further instructions.
 
 ## Loading Logs in Python
 
-Loading a uncompressed converted logfile in Python is as simple as those two lines:
+Loading an uncompressed converted logfile in Python is as simple as those two lines:
 
 ```python
 import msgpack
@@ -157,8 +156,7 @@ pocolog2msgpack.
 Note 1: This loads the complete log file into memory at once.
 Note 2: In older versions of msgpack, `encoding="utf8"` may be needed.
 
-Make sure that msgpack-python is installed
-(e.g. `sudo pip3 install msgpack-python`).
+Make sure that msgpack is installed (e.g. `pip3 install msgpack`).
 This is the only dependency. You do not have to install this package to load
 the files once you converted them to MsgPack.
 

@@ -32,20 +32,21 @@ You can either clone the public repository:
 
 .. code-block:: console
 
-    $ git clone git://github.com/vbargsten/pocolog2msgpack
+    $ git clone git://github.com/rock-core/tools-pocolog2msgpack
 
 Or download the `tarball`_:
 
 .. code-block:: console
 
-    $ curl -OJL https://github.com/vbargsten/pocolog2msgpack/tarball/master
+    $ curl -OJL https://github.com/rock-core/tools-pocolog2msgpack/tarball/master
 
 Once you have a copy of the source, you can install it with:
 
 .. code-block:: console
+    
+    $ cd tools-pocolog2msgpack/python-pocolog2msgpack
+    $ python setup.py install --user
 
-    $ python setup.py install
 
-
-.. _Github repo: https://github.com/vbargsten/pocolog2msgpack
-.. _tarball: https://github.com/vbargsten/pocolog2msgpack/tarball/master
+.. _Github repo: https://github.com/rock-core/tools-pocolog2msgpack
+.. _tarball: https://github.com/rock-core/tools-pocolog2msgpack/tarball/master
