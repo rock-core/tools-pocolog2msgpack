@@ -4,7 +4,7 @@ import os
 from contextlib import contextmanager
 from nose.tools import assert_in, assert_equal, assert_true
 import pocolog2msgpack
-
+import numpy as np
 
 @contextmanager
 def cleanup(output):
@@ -272,3 +272,157 @@ def test_object2relational():
         name1 = port["names.1"]
         assert_equal(name1[0], "j2")
         assert_equal(name1[1], "j2")
+
+
+def test_flatten():
+    output = "joints.msg"
+    with cleanup([output]):
+        cmd = "pocolog2msgpack -l test/data/joints.0.log --flatten -o %s" % output
+        proc = pexpect.spawn(cmd)
+        proc.expect(pexpect.EOF)
+        log = msgpack.unpack(open(output, "rb"))
+        #for k in log.keys():
+        #    print(k, log[k])
+        
+        expected_log = {}
+        nan = float("nan")
+        expected_log["/message_producer.messages/names"] = [['j1', 'j2'], ['j1', 'j2']]
+        expected_log["/message_producer.messages/elements/position"] = [[1.0, 2.0], [1.0, 2.0]]
+        expected_log["/message_producer.messages/elements/speed"] = [[nan, nan], [nan, nan]]
+        expected_log["/message_producer.messages/elements/effort"] = [[nan, nan], [nan, nan]]
+        expected_log["/message_producer.messages/elements/raw"] = [[nan, nan], [nan, nan]]
+        expected_log["/message_producer.messages/elements/acceleration"] = [[nan, nan], [nan, nan]]
+        expected_log["/message_producer.messages/time/microseconds"] = [1502180215405251, 1502180216405234]
+        expected_log["/message_producer.messages.meta/timestamps"] = [1502180215405385, 1502180216405284]
+        expected_log["/message_producer.messages.meta/type"] = "/base/samples/Joints"
+        expected_log["/message_producer.state"] = [5, 4]
+        expected_log["/message_producer.state.meta/timestamps"] = [1502180214703530, 1502180217405321]
+        expected_log["/message_producer.state.meta/type"] = "/int32_t"
+
+        assert_true(isinstance(log, dict))
+        assert_equal(len(log), len(expected_log))
+
+        for k in expected_log.keys():
+            assert_true(k in log)
+            # compare with str(...) because otherwise special handling is need since float("nan") != float("nan")
+            assert_equal(str(expected_log[k]), str(log[k]))
+
+
+def test_align_named_vector():
+    output = "joints.msg"
+    with cleanup([output]):
+        cmd = "pocolog2msgpack -l test/data/joints.0.log --flatten --align_named_vector -o %s" % output
+        proc = pexpect.spawn(cmd)
+        proc.expect(pexpect.EOF)
+        log = msgpack.unpack(open(output, "rb"))
+        #for k in log.keys():
+        #    print(k, log[k])
+        
+        expected_log = {}
+        nan = float("nan")
+        expected_log["/message_producer.messages/names"] = ['j1', 'j2']
+        expected_log["/message_producer.messages/elements/position"] = [[1.0, 2.0], [1.0, 2.0]]
+        expected_log["/message_producer.messages/elements/speed"] = [[nan, nan], [nan, nan]]
+        expected_log["/message_producer.messages/elements/effort"] = [[nan, nan], [nan, nan]]
+        expected_log["/message_producer.messages/elements/raw"] = [[nan, nan], [nan, nan]]
+        expected_log["/message_producer.messages/elements/acceleration"] = [[nan, nan], [nan, nan]]
+        expected_log["/message_producer.messages/time/microseconds"] = [1502180215405251, 1502180216405234]
+        expected_log["/message_producer.messages.meta/timestamps"] = [1502180215405385, 1502180216405284]
+        expected_log["/message_producer.messages.meta/type"] = "/base/samples/Joints"
+        expected_log["/message_producer.state"] = [5, 4]
+        expected_log["/message_producer.state.meta/timestamps"] = [1502180214703530, 1502180217405321]
+        expected_log["/message_producer.state.meta/type"] = "/int32_t"
+
+        assert_true(isinstance(log, dict))
+        assert_equal(len(log), len(expected_log))
+
+        for k in expected_log.keys():
+            assert_true(k in log)
+            # compare with str(...) because otherwise special handling is need since float("nan") != float("nan")
+            assert_equal(str(expected_log[k]), str(log[k]))
+
+
+def test_get_fields():
+    output = "joints.msg"
+    with cleanup([output]):
+        cmd = "pocolog2msgpack -l test/data/joints.0.log --flatten --align_named_vector -o %s" % output
+        proc = pexpect.spawn(cmd)
+        proc.expect(pexpect.EOF)
+        
+        log_fields = pocolog2msgpack.get_fields(output)
+        log_all = msgpack.unpack(open(output, "rb"))
+                
+        assert_true(isinstance(log_fields, list))
+        assert_true(isinstance(log_all, dict))
+        assert_equal(len(log_fields), len(log_all))
+        assert_equal(len(log_fields), 12)
+        assert_equal(set(log_fields), log_all.keys())
+        
+
+def test_compression():
+    output = "joints.msg.zz"
+    with cleanup([output]):
+        cmd = "pocolog2msgpack -l test/data/joints.0.log --flatten --align_named_vector --compress -o %s" % output
+        proc = pexpect.spawn(cmd)
+        proc.expect(pexpect.EOF)
+        
+        log = pocolog2msgpack.read_fields(output)
+        #log = msgpack.unpack(open(output, "rb"))
+        #for k in log.keys():
+        #    print("expected_log[\"{}\"] = \"{}\"".format(k, log[k]))
+        
+        expected_log = {}
+        nan = float("nan")
+        expected_log["/message_producer.messages/names"] = ['j1', 'j2']
+        expected_log["/message_producer.messages/elements/position"] = [[1.0, 2.0], [1.0, 2.0]]
+        expected_log["/message_producer.messages/elements/speed"] = [[nan, nan], [nan, nan]]
+        expected_log["/message_producer.messages/elements/effort"] = [[nan, nan], [nan, nan]]
+        expected_log["/message_producer.messages/elements/raw"] = [[nan, nan], [nan, nan]]
+        expected_log["/message_producer.messages/elements/acceleration"] = [[nan, nan], [nan, nan]]
+        expected_log["/message_producer.messages/time/microseconds"] = [1502180215405251, 1502180216405234]
+        expected_log["/message_producer.messages.meta/timestamps"] = [1502180215405385, 1502180216405284]
+        expected_log["/message_producer.messages.meta/type"] = "/base/samples/Joints"
+        expected_log["/message_producer.state"] = [5, 4]
+        expected_log["/message_producer.state.meta/timestamps"] = [1502180214703530, 1502180217405321]
+        expected_log["/message_producer.state.meta/type"] = "/int32_t"
+
+        assert_true(isinstance(log, dict))
+        assert_equal(len(log), len(expected_log))
+
+        for k in expected_log.keys():
+            print("Testing key ", k)
+            assert_true(k in log)
+            # compare with str(...) because otherwise special handling is need since float("nan") != float("nan")
+            assert_true(str(expected_log[k]), str(log[k].tolist()))
+        
+
+def test_read_single_field():
+    output = "joints.msg.zz"
+    with cleanup([output]):
+        cmd = "pocolog2msgpack -l test/data/joints.0.log --flatten --align_named_vector --compress -o %s" % output
+        proc = pexpect.spawn(cmd)
+        proc.expect(pexpect.EOF)        
+        
+        expected_log = {}
+        nan = float("nan")
+        expected_log["/message_producer.messages/names"] = ['j1', 'j2']
+        expected_log["/message_producer.messages/elements/position"] = [[1.0, 2.0], [1.0, 2.0]]
+        expected_log["/message_producer.messages/elements/speed"] = [[nan, nan], [nan, nan]]
+        expected_log["/message_producer.messages/elements/effort"] = [[nan, nan], [nan, nan]]
+        expected_log["/message_producer.messages/elements/raw"] = [[nan, nan], [nan, nan]]
+        expected_log["/message_producer.messages/elements/acceleration"] = [[nan, nan], [nan, nan]]
+        expected_log["/message_producer.messages/time/microseconds"] = [1502180215405251, 1502180216405234]
+        expected_log["/message_producer.messages.meta/timestamps"] = [1502180215405385, 1502180216405284]
+        expected_log["/message_producer.messages.meta/type"] = "/base/samples/Joints"
+        expected_log["/message_producer.state"] = [5, 4]
+        expected_log["/message_producer.state.meta/timestamps"] = [1502180214703530, 1502180217405321]
+        expected_log["/message_producer.state.meta/type"] = "/int32_t"
+
+
+        for k in expected_log.keys():
+            print("Testing key ", k)
+            log_field = pocolog2msgpack.read_field(output, k)
+            # compare with str(...) because otherwise special handling is need since float("nan") != float("nan")
+            assert_true(str(expected_log[k]), str(log_field.tolist()))
+            
+        
