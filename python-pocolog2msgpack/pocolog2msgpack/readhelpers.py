@@ -35,7 +35,7 @@ def read_fields(filename, srcKeys=None, renameMap=None, dataToNumpyArray=True, a
     """
     Read the list of fields in srcKeys from compress msgpack file determined by filename.
         
-    :param filename: the path of the input file (e.g. a *.msg.zz file)
+    :param filename: the path of the input file (e.g. a ``*.msg.zz`` file)
     :param srcKeys: the list of fields (to level keys) to read or None to read all or can be the same as renameMap
     :param renameMap: a dict listing how the srcKeys should be called in the output
     :param dataToNumpyArray: if true, each field is converted to numpy array
