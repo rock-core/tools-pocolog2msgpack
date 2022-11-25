@@ -5,13 +5,14 @@
   <author>Alexander Fabisch/Alexander.Fabisch@dfki.de</author>
   <maintainer>Alexander Fabisch/Alexander.Fabisch@dfki.de</maintainer>
   <license>LGPL-2.1 or later</license>
-  <url>https://git.hb.dfki.de/InFuse/pocolog2msgpack</url>
+  <url>https://github.com/rock-core/tools-pocolog2msgpack</url>
   <logo>none</logo>
 
   <depend package="tools/pocolog_cpp" />
   <depend package="typelib" />
   <depend package="boost" />
   <depend package="tools/msgpack-c" />
+  <depend package="zlib" />
   <depend package="python3" optional="1" />
   <depend package="python3-distutils" optional="1" />
   <depend package="python3-nose" optional="1" />
