@@ -1,2 +1,2 @@
 source /opt/rock/env.sh
-amake --no-interactive
+amake --no-interactive --verbose
