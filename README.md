@@ -169,8 +169,12 @@ contains the timestamp for each sample at the key `"timestamps"` and the
 data type at the key `"type"`. At the moment, we use the type names from
 Typelib.
 
+If the `--flatten` option has been used to convert the log data, 
+the keys will be of type `"/<task_name>.<port name>/<field name>/<sub-field name>...."`.
+These keys map to a vector or an array of samples for this field, depending on the type the stream had originally.
+
 There are several examples of how to use the tool and how to load data in
-Python in the test folder.
+Python in the test folder. Further documentation can also be found in the Python pacakge pocolog2msgpack.
 
 ## Tests
 
