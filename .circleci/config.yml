@@ -4,11 +4,40 @@ jobs:
     docker:
       - image: af01/pocolog2msgpack-ci:latest
     steps:
-      - checkout
+      - run:
+          name: Checkout
+          environment:
+            DEBIAN_FRONTEND: noninteractive
+            SHELL: "/bin/bash"
+          command: |
+            mkdir -p ~/.ssh
+            apt-get -y install curl jq
+            curl --silent "https://api.github.com/meta" | jq --raw-output '"github.com "+.ssh_keys[]' > ~/.ssh/known_hosts
+            mkdir -p /opt/rock/autoproj/overrides.d
+            echo "- tools/pocolog2msgpack:" > /opt/rock/autoproj/overrides.d/10-tools_pocolog2msgpack.yml
+            echo "  type: git" >> /opt/rock/autoproj/overrides.d/10-tools_pocolog2msgpack.yml
+            echo "  url: \"$CIRCLE_REPOSITORY_URL\"" >> /opt/rock/autoproj/overrides.d/10-tools_pocolog2msgpack.yml
+            echo "  branch: \"$CIRCLE_BRANCH\"" >> /opt/rock/autoproj/overrides.d/10-tools_pocolog2msgpack.yml
+            git config --global user.email "you@example.com"
+            git config --global user.name "Your Name"
+            echo "USE_PYTHON: true" >> /opt/rock/.autoproj/config.yml
+            source /opt/rock/env.sh
+            autoproj update --no-interactive tools/pocolog2msgpack
       - run:
           name: Build
-          command: ./build_tools/circleci/build.sh
+          environment:
+            DEBIAN_FRONTEND: noninteractive
+            SHELL: "/bin/bash"
+          command: |
+            source /opt/rock/env.sh
+            cd /opt/rock/tools/pocolog2msgpack
+            autoproj build --verbose --no-interactive .          
       - run:
           name: Test
-          command: ./build_tools/circleci/test.sh
-
+          environment:
+            DEBIAN_FRONTEND: noninteractive
+            SHELL: "/bin/bash"
+          command: |
+            source /opt/rock/env.sh
+            cd /opt/rock/tools/pocolog2msgpack
+            nosetests3 -sv

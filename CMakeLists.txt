@@ -18,19 +18,19 @@ link_directories(
 add_executable(pocolog2msgpack src/pocolog2msgpack.cpp src/Converter.cpp)
 target_link_libraries(
     pocolog2msgpack
-    ${POCOLOG_CPP_LIBRARIES} ${TYPELIB_LIBRARIES} ${Boost_LIBRARIES} ${MSGPACK_LIBRARIES}
+    ${POCOLOG_CPP_LIBRARIES} ${TYPELIB_LIBRARIES} ${Boost_LIBRARIES} ${MSGPACK_LIBRARIES} z
 )
 install(
     TARGETS pocolog2msgpack
     DESTINATION bin
 )
 
-find_package(PythonInterp)
+find_package(PythonInterp 3)
 if(PYTHONINTERP_FOUND)
     install(
         CODE "execute_process(
-            COMMAND ${PYTHON_EXECUTABLE} setup.py install --prefix=${CMAKE_INSTALL_PREFIX}
-            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})"
+            COMMAND ${PYTHON_EXECUTABLE} -m pip install --user .
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python-pocolog2msgpack)"
     )
 endif(PYTHONINTERP_FOUND)
 

@@ -2,7 +2,7 @@ FROM ubuntu:20.04
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && \
-    apt-get install --yes --quiet \
+    apt-get install --yes \
       build-essential \
       cmake \
       wget \
@@ -36,28 +36,28 @@ RUN apt-get update && \
       #qt4-qmake
 
 SHELL ["/bin/bash", "-c"]
+ENV SHELL=/bin/bash
 
 # autoproj needs these to be defined (will be removed later):
 RUN git config --global user.email infuse@example.com \
     && git config --global user.name InFuse
 
 WORKDIR /opt/rock
+COPY autoproj-seed-config.yml /opt/rock/
 RUN wget http://www.rock-robotics.org/autoproj_bootstrap --directory-prefix=/opt/rock/
-RUN ruby autoproj_bootstrap git https://github.com/rock-core/buildconf.git --no-interactive
+RUN ruby autoproj_bootstrap git https://github.com/rock-core/buildconf.git --no-interactive --seed-config=autoproj-seed-config.yml
 COPY manifest /opt/rock/autoproj
 COPY init.rb /opt/rock/autoproj
 COPY overrides.rb /opt/rock/autoproj
 COPY overrides.yml /opt/rock/autoproj
 RUN source env.sh && autoproj update --no-interactive
-RUN source env.sh && autoproj build --no-interactive
-RUN git clone https://github.com/msgpack/msgpack-c.git tools/msgpack-c --depth 1 --branch cpp-3.1.1
-RUN source env.sh && autoproj build tools/msgpack-c --no-interactive
+RUN source env.sh && autoproj build --verbose --no-interactive
 
 # Reset git configuration
 RUN rm /root/.gitconfig
 
 LABEL maintainer="Alexander.Fabisch@dfki.de"
-LABEL version="1.0.0"
+LABEL version="1.1.0"
 LABEL description="Image providing the dependencies of pocolog2msgpack"
 
 # build docker image:

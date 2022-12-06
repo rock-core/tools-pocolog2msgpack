@@ -1,0 +1,233 @@
+
+
+<!doctype html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Usage &#8212; pocolog2msgpack 1.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/bizstyle.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/bizstyle.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="pocolog2msgpack" href="modules.html" />
+    <link rel="prev" title="Installation" href="installation.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <!--[if lt IE 9]>
+    <script src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="modules.html" title="pocolog2msgpack"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="installation.html" title="Installation"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pocolog2msgpack 1.1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Usage</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="usage">
+<span id="sec-usage"></span><h1>Usage<a class="headerlink" href="#usage" title="Permalink to this heading">¶</a></h1>
+<ol class="arabic">
+<li><p>Get available fields:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pocolog2msgpack</span> <span class="kn">import</span> <span class="n">get_fields</span><span class="p">,</span> <span class="n">read_field</span><span class="p">,</span> <span class="n">read_fields</span>
+
+<span class="n">path</span> <span class="o">=</span> <span class="s2">&quot;20221013154136.072_data.msg.zz&quot;</span>
+
+<span class="n">fields</span> <span class="o">=</span> <span class="n">get_fields</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p>Reading a single field:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dat</span> <span class="o">=</span> <span class="p">{}</span>
+
+<span class="n">dat</span><span class="p">[</span><span class="s2">&quot;effort&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">read_field</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;/crex_dispatcher_drv_meas.act_state_out/elements/effort&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p>Reading multiple fields and rename the target key:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">keys</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;/crex_foot_force_estimator.ff_estimated/elements/force/data&quot;</span> <span class="p">:</span> <span class="s2">&quot;force_est&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;/crex_dispatcher_ft_sensors.forces_all/elements/force/data&quot;</span> <span class="p">:</span> <span class="s2">&quot;force_meas&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;/crex_foot_force_estimator.ff_estimated/names&quot;</span> <span class="p">:</span> <span class="s2">&quot;force_est_names&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;/crex_dispatcher_ft_sensors.forces_all/names&quot;</span> <span class="p">:</span> <span class="s2">&quot;force_meas_names&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;/crex_foot_force_estimator.ff_estimated/time/microseconds&quot;</span> <span class="p">:</span> <span class="s2">&quot;force_est_time&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;/crex_dispatcher_ft_sensors.forces_all/time/microseconds&quot;</span> <span class="p">:</span> <span class="s2">&quot;force_meas_time&quot;</span>
+<span class="p">}</span>
+
+<span class="n">dat</span> <span class="o">=</span> <span class="n">read_fields</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">srcKeys</span><span class="o">=</span><span class="n">keys</span><span class="p">,</span> <span class="n">renameMap</span><span class="o">=</span><span class="n">keys</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p>Raw loading of complete log files in Python</p>
+<p>Loading an uncompressed converted logfile in Python is as simple as those two lines</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">msgpack</span>
+<span class="n">log</span> <span class="o">=</span> <span class="n">msgpack</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="s2">&quot;output.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Note 1: This loads the complete log file into memory at once.
+Note 2: In older versions of msgpack, <code class="docutils literal notranslate"><span class="pre">encoding=&quot;utf8&quot;</span></code> may be needed.</p>
+<p>Make sure that msgpack is installed (e.g. <code class="docutils literal notranslate"><span class="pre">pip3</span> <span class="pre">install</span> <span class="pre">msgpack</span></code>).
+This is the only dependency. You do not have to install this package to load
+the files once you converted them to MsgPack.</p>
+<p>The object <cite>log</cite> is a Python dictionary that contains names of all logged ports
+as keys and the logged data in a list as its keys.</p>
+<p>The logdata itself is stored at the key <code class="docutils literal notranslate"><span class="pre">/&lt;task_name&gt;.&lt;port</span> <span class="pre">name&gt;</span></code> and
+meta data is stored at <code class="docutils literal notranslate"><span class="pre">/&lt;task_name&gt;.&lt;port</span> <span class="pre">name&gt;.meta</span></code>. The meta data
+contains the timestamp for each sample at the key <cite>“timestamps”</cite> and the
+data type at the key <code class="docutils literal notranslate"><span class="pre">type</span></code>. At the moment, we use the type names from
+Typelib.</p>
+<p>If the <code class="docutils literal notranslate"><span class="pre">--flatten</span></code> option has been used to convert the log data,
+the keys will be of type <code class="docutils literal notranslate"><span class="pre">/&lt;task_name&gt;.&lt;port</span> <span class="pre">name&gt;/&lt;field</span> <span class="pre">name&gt;/&lt;sub-field</span> <span class="pre">name&gt;....</span></code>.
+These keys map to a vector or an array of samples for this field, depending on the type the stream had originally.</p>
+</li>
+<li><p>Conversion to Relational Format</p>
+<p>To convert from data samples with nested fields to relational data, have a look at the function <code class="docutils literal notranslate"><span class="pre">object2relational</span></code>.
+There is an optional Python package <cite>pocolog2msgpack</cite> that will be installed
+only if you have Python on your system. It can be used to convert data
+from object-oriented format to a relational format so that you can convert it
+directly to a [pandas.DataFrame](<a class="reference external" href="http://pandas.pydata.org/">http://pandas.pydata.org/</a>)</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">msgpack</span>
+<span class="kn">import</span> <span class="nn">pocolog2msgpack</span>
+<span class="kn">import</span> <span class="nn">pandas</span>
+<span class="n">pocolog2msgpack</span><span class="o">.</span><span class="n">object2relational</span><span class="p">(</span><span class="n">logfile</span><span class="p">,</span> <span class="n">logfile_relational</span><span class="p">)</span>
+<span class="n">log</span> <span class="o">=</span> <span class="n">msgpack</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">logfile_relational</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">))</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">log</span><span class="p">[</span><span class="n">port_name</span><span class="p">])</span>
+<span class="c1"># use the timestamp as an index:</span>
+<span class="n">df</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;timestamp&quot;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="c1"># order columns alphabetically:</span>
+<span class="n">df</span><span class="o">.</span><span class="n">reindex_axis</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Vectors or arrays will usually not be unravelled automatically even if they
+have the same size in each sample. You have to whitelist them manually, e.g.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pocolog2msgpack</span><span class="o">.</span><span class="n">object2relational</span><span class="p">(</span>
+    <span class="n">logfile</span><span class="p">,</span> <span class="n">logfile_relational</span><span class="p">,</span> <span class="n">whitelist</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;elements&quot;</span><span class="p">,</span> <span class="s2">&quot;names&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>This will result in unravelled base::samples::Joints object in this case:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s1">&#39;/message_producer.messages&#39;</span><span class="p">:</span>
+    <span class="p">{</span>
+        <span class="s1">&#39;elements.1.position&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">2.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">],</span>
+        <span class="s1">&#39;time.microseconds&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1502180215405251</span><span class="p">,</span> <span class="mi">1502180216405234</span><span class="p">],</span>
+        <span class="s1">&#39;elements.1.raw&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">nan</span><span class="p">,</span> <span class="n">nan</span><span class="p">],</span>
+        <span class="s1">&#39;elements.0.raw&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">nan</span><span class="p">,</span> <span class="n">nan</span><span class="p">],</span>
+        <span class="s1">&#39;timestamp&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1502180215405385</span><span class="p">,</span> <span class="mi">1502180216405284</span><span class="p">],</span>
+        <span class="s1">&#39;elements.0.acceleration&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">nan</span><span class="p">,</span> <span class="n">nan</span><span class="p">],</span>
+        <span class="s1">&#39;elements.1.speed&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">nan</span><span class="p">,</span> <span class="n">nan</span><span class="p">],</span>
+        <span class="s1">&#39;names.1&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;j2&#39;</span><span class="p">,</span> <span class="s1">&#39;j2&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;elements.1.acceleration&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">nan</span><span class="p">,</span> <span class="n">nan</span><span class="p">],</span>
+        <span class="s1">&#39;names.0&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;j1&#39;</span><span class="p">,</span> <span class="s1">&#39;j1&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;elements.0.speed&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">nan</span><span class="p">,</span> <span class="n">nan</span><span class="p">],</span>
+        <span class="s1">&#39;elements.1.effort&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">nan</span><span class="p">,</span> <span class="n">nan</span><span class="p">],</span>
+        <span class="s1">&#39;elements.0.position&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;/base/samples/Joints&#39;</span><span class="p">,</span> <span class="s1">&#39;/base/samples/Joints&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;elements.0.effort&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">nan</span><span class="p">,</span> <span class="n">nan</span><span class="p">]</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ol>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h3><a href="index.html">Table of Contents</a></h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">Readme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">API</a></li>
+</ul>
+
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="installation.html"
+                          title="previous chapter">Installation</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="modules.html"
+                          title="next chapter">pocolog2msgpack</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/usage.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="modules.html" title="pocolog2msgpack"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="installation.html" title="Installation"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pocolog2msgpack 1.1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Usage</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2022, Vinzenz Bargsten, Alexander Fabisch.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

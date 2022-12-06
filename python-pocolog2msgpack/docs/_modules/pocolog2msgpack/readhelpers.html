@@ -1,0 +1,214 @@
+
+
+<!doctype html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pocolog2msgpack.readhelpers &#8212; pocolog2msgpack 1.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/bizstyle.css" />
+    
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/bizstyle.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <!--[if lt IE 9]>
+    <script src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">pocolog2msgpack 1.1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">pocolog2msgpack.readhelpers</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pocolog2msgpack.readhelpers</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">msgpack</span>
+<span class="kn">from</span> <span class="nn">.BufferedFileDecompressor</span> <span class="kn">import</span> <span class="n">BufferedFileDecompressor</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<div class="viewcode-block" id="get_fields"><a class="viewcode-back" href="../../pocolog2msgpack.html#pocolog2msgpack.readhelpers.get_fields">[docs]</a><span class="k">def</span> <span class="nf">get_fields</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">decompress</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">):</span>    
+    
+    <span class="k">if</span> <span class="n">decompress</span><span class="o">==</span><span class="s2">&quot;zlib&quot;</span> <span class="ow">or</span> <span class="p">(</span><span class="n">decompress</span><span class="o">==</span><span class="s2">&quot;auto&quot;</span> <span class="ow">and</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.zz&quot;</span><span class="p">)):</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">BufferedFileDecompressor</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">open</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span>
+    
+    <span class="n">paths</span> <span class="o">=</span> <span class="p">[]</span>
+        
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">unpacker</span> <span class="o">=</span> <span class="n">msgpack</span><span class="o">.</span><span class="n">Unpacker</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        
+        <span class="n">key_count</span> <span class="o">=</span> <span class="n">unpacker</span><span class="o">.</span><span class="n">read_map_header</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">key_count</span><span class="p">):</span>
+            <span class="n">paths</span> <span class="o">+=</span> <span class="p">[</span><span class="n">unpacker</span><span class="o">.</span><span class="n">unpack</span><span class="p">()]</span>
+            <span class="n">unpacker</span><span class="o">.</span><span class="n">skip</span><span class="p">()</span>
+        
+        <span class="k">del</span> <span class="n">unpacker</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        
+    <span class="k">del</span> <span class="n">f</span>
+    
+    <span class="k">return</span> <span class="n">paths</span></div>
+    
+<div class="viewcode-block" id="read_field"><a class="viewcode-back" href="../../pocolog2msgpack.html#pocolog2msgpack.readhelpers.read_field">[docs]</a><span class="k">def</span> <span class="nf">read_field</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">srcKey</span><span class="p">,</span> <span class="n">dataToNumpyArray</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">decompress</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">read_fields</span><span class="p">(</span> <span class="n">filename</span><span class="p">,</span> <span class="n">srcKeys</span><span class="o">=</span><span class="p">[</span><span class="n">srcKey</span><span class="p">],</span> <span class="n">dataToNumpyArray</span><span class="o">=</span><span class="n">dataToNumpyArray</span> <span class="p">)[</span><span class="n">srcKey</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="read_fields"><a class="viewcode-back" href="../../pocolog2msgpack.html#pocolog2msgpack.readhelpers.read_fields">[docs]</a><span class="k">def</span> <span class="nf">read_fields</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">srcKeys</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">renameMap</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dataToNumpyArray</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">allowDuplicates</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">decompress</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Read the list of fields in srcKeys from compress msgpack file determined by filename.</span>
+<span class="sd">        </span>
+<span class="sd">    :param filename: the path of the input file (e.g. a ``*.msg.zz`` file)</span>
+<span class="sd">    :param srcKeys: the list of fields (to level keys) to read or None to read all or can be the same as renameMap</span>
+<span class="sd">    :param renameMap: a dict listing how the srcKeys should be called in the output</span>
+<span class="sd">    :param dataToNumpyArray: if true, each field is converted to numpy array</span>
+<span class="sd">    :param allowDuplicates: if true, values of output dict become lists</span>
+<span class="sd">    :returns: a dict with the field names or the values of renameMap as keys, and the data as values</span>
+<span class="sd">    :raises IndexError: raises an exception a key cannot be found or is not unique</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">if</span> <span class="n">decompress</span><span class="o">==</span><span class="s2">&quot;zlib&quot;</span> <span class="ow">or</span> <span class="p">(</span><span class="n">decompress</span><span class="o">==</span><span class="s2">&quot;auto&quot;</span> <span class="ow">and</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.zz&quot;</span><span class="p">)):</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">BufferedFileDecompressor</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">open</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span>
+    
+    <span class="n">wanted_fields</span> <span class="o">=</span> <span class="kc">None</span>
+    
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">srcKeys</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="n">wanted_fields</span> <span class="o">=</span> <span class="n">srcKeys</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">srcKeys</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="n">wanted_fields</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">srcKeys</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="k">elif</span> <span class="n">srcKeys</span><span class="o">!=</span><span class="kc">None</span><span class="p">:</span>
+        <span class="n">wanted_fields</span> <span class="o">+=</span> <span class="p">[</span><span class="n">srcKeys</span><span class="p">]</span>
+        
+    <span class="n">field_data</span> <span class="o">=</span> <span class="p">{}</span>
+    
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">unpacker</span> <span class="o">=</span> <span class="n">msgpack</span><span class="o">.</span><span class="n">Unpacker</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="n">key_count</span> <span class="o">=</span> <span class="n">unpacker</span><span class="o">.</span><span class="n">read_map_header</span><span class="p">()</span>        
+        
+        <span class="k">while</span> <span class="n">key_count</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">field_name</span> <span class="o">=</span> <span class="n">unpacker</span><span class="o">.</span><span class="n">unpack</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Next key is &quot;</span><span class="p">,</span> <span class="n">field_name</span><span class="p">)</span>
+            
+            <span class="k">if</span> <span class="n">wanted_fields</span><span class="o">==</span><span class="kc">None</span> <span class="ow">or</span> <span class="n">wanted_fields</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">field_name</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">dataToNumpyArray</span><span class="p">:</span>
+                    <span class="n">cur_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">unpacker</span><span class="o">.</span><span class="n">unpack</span><span class="p">())</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">cur_data</span> <span class="o">=</span> <span class="n">unpacker</span><span class="o">.</span><span class="n">unpack</span><span class="p">()</span>
+                    
+                <span class="n">target_name</span> <span class="o">=</span> <span class="n">field_name</span>
+                <span class="k">if</span> <span class="n">renameMap</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">field_name</span> <span class="ow">in</span> <span class="n">renameMap</span><span class="p">:</span>
+                    <span class="n">target_name</span> <span class="o">=</span> <span class="n">renameMap</span><span class="p">[</span><span class="n">field_name</span><span class="p">]</span>
+                    
+                <span class="k">if</span> <span class="n">target_name</span> <span class="ow">in</span> <span class="n">field_data</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">allowDuplicates</span><span class="p">:</span>
+                        <span class="n">field_data</span><span class="p">[</span><span class="n">target_name</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="n">cur_data</span> <span class="p">)</span>                            
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Key </span><span class="si">{}</span><span class="s2"> not unique and allowDuplicates is set to False.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">f</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">allowDuplicates</span><span class="p">:</span>
+                        <span class="n">field_data</span><span class="p">[</span><span class="n">target_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span> <span class="n">cur_data</span> <span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">field_data</span><span class="p">[</span><span class="n">target_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">cur_data</span>
+                
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;....skipped&quot;</span><span class="p">)</span>
+                <span class="n">unpacker</span><span class="o">.</span><span class="n">skip</span><span class="p">()</span>
+            
+            <span class="n">key_count</span> <span class="o">=</span> <span class="n">key_count</span> <span class="o">-</span> <span class="mi">1</span>
+            
+        <span class="k">if</span> <span class="n">wanted_fields</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">fld</span> <span class="ow">in</span> <span class="n">wanted_fields</span><span class="p">:</span>
+                <span class="n">target_name</span> <span class="o">=</span> <span class="n">fld</span>
+                <span class="k">if</span> <span class="n">renameMap</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">fld</span> <span class="ow">in</span> <span class="n">renameMap</span><span class="p">:</span>
+                    <span class="n">target_name</span> <span class="o">=</span> <span class="n">renameMap</span><span class="p">[</span><span class="n">fld</span><span class="p">]</span>
+                    
+                <span class="k">if</span> <span class="n">target_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">field_data</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Availabe keys: &quot;</span><span class="p">,</span> <span class="n">field_data</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+                    <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span><span class="s2">&quot;Did not find requested field </span><span class="se">\&quot;</span><span class="si">{}</span><span class="se">\&quot;</span><span class="s2">-&gt;</span><span class="se">\&quot;</span><span class="si">{}</span><span class="se">\&quot;</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fld</span><span class="p">,</span> <span class="n">target_name</span><span class="p">))</span>
+            
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        
+    <span class="k">del</span> <span class="n">unpacker</span>
+    <span class="k">del</span> <span class="n">f</span>
+    
+    <span class="k">return</span> <span class="n">field_data</span></div>
+ 
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h3><a href="../../index.html">Table of Contents</a></h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../index.html">Readme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">API</a></li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">pocolog2msgpack 1.1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">pocolog2msgpack.readhelpers</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2022, Vinzenz Bargsten, Alexander Fabisch.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

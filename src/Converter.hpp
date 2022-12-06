@@ -4,7 +4,8 @@
 #include <typelib/typemodel.hh>
 #include <typelib/typevisitor.hh>
 #include <typelib/value.hh>
-
+#include <pocolog_cpp/InputDataStream.hpp>
+#include <set>
 
 /**
  * Convert logfile.
@@ -19,11 +20,12 @@
  */
 int convert(const std::vector<std::string>& logfiles, const std::string& output,
             const int containerLimit, const std::string& only,
-            const int start, const int end, const int verbose);
+            const int start, const int end, bool flatten, 
+            bool align_named_vector, const bool compress, const int verbose);
 
 
 /**
- * Actual converter logic for one sample.
+ * Actual converter logic for the samples.
  *
  * The converter loads a single type from its serialized typelib representation
  * and stores it in MessagePack format. The typelib type information must be
@@ -40,6 +42,10 @@ class Converter : public Typelib::ValueVisitor
     /** All data will be put in this packer. */
     msgpack_packer& pk;
     /** Verbosity level. */
+    bool align_named_vector = false;
+    /** Verbosity level. */
+    bool flatten = false;
+    /** Verbosity level. */
     int verbose;
     /** debug output. */
     bool debug;
@@ -53,9 +59,43 @@ class Converter : public Typelib::ValueVisitor
     std::string numericToStringBuffer = "";
 
 public:
-    Converter(std::string const& basename, Typelib::Type const& type, msgpack_packer& pk, int containerLimit, int verbose);
+    Converter(
+        Typelib::Type const& type, 
+        msgpack_packer& pk, 
+        int containerLimit, 
+        bool flatten, 
+        bool align_named_vector, 
+        int verbose        
+    );
     virtual ~Converter();
+    int convertSamples(
+        pocolog_cpp::InputDataStream* stream,
+        const int start, const int end
+    );
+    
+    int convertMetaData(
+        pocolog_cpp::InputDataStream* stream,
+        const int start, const int end
+    );
     void convertSample(std::vector<uint8_t>& data);
+        
+    static bool inspectTypeLevels(
+        const Typelib::Type &t, 
+        std::vector<std::string> toplevelPath, 
+        std::vector<std::vector<std::string>> & paths
+    );
+    static bool isNamedVector(
+        const Typelib::Type &t, 
+        std::vector<std::string> toplevelPath, 
+        std::vector<std::string> targetPath
+    );
+    
+    static bool isNamedVectorField(
+        const Typelib::Type &t, 
+        std::vector<std::string> toplevelPath, 
+        std::vector<std::string> targetPath
+    );
+    
 protected:
     bool visit_ (int8_t  & v);
     bool visit_ (uint8_t & v);
@@ -77,6 +117,18 @@ protected:
     bool visit_(Typelib::Enum::integral_type&, Typelib::Enum const& e);
 
     using ValueVisitor::visit_;
+    
+    std::map<std::vector<std::string>, std::map<std::string, size_t>> path_to_name_orders;
+    std::set<std::vector<std::string>> names_written;
+    
+    bool extractDataByPath(
+        const Typelib::Value &v, 
+        std::vector<std::string> toplevelPath, 
+        std::vector<std::string> targetPath, 
+        std::shared_ptr<std::vector<size_t>> element_order=std::shared_ptr<std::vector<size_t>>() 
+    );
+    
+    
 private:
     void reset();
     void printBegin();

@@ -33,6 +33,14 @@ int main(int argc, char *argv[])
         ("end", boost::program_options::value<int>()->default_value(-1),
             "Index after the last sample that will be exported. This option "
             "is only useful if only one stream will be exported.")
+        ("align_named_vector",
+            "For named vector types, order the elements by the names of the first sample. "
+            "Only one names vector valid for all samples will be included in the output. "
+            "Only works with --flatten.")
+        ("flatten",
+            "With --flatten, all nested field names are joined into top level keys. "
+            "This makes the data fields directly accessible.")
+        ("compress", "Compress the output using msgpack's zlib compression.")
     ;
     po::variables_map vm;
     po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -58,7 +66,10 @@ int main(int argc, char *argv[])
     const std::string only = vm["only"].as<std::string>();
     const int start = vm["start"].as<int>();
     const int end = vm["end"].as<int>();
-
+    const bool align_named_vector = vm.count("align_named_vector");
+    const bool flatten = vm.count("flatten");
+    const bool compress = vm.count("compress");
+    
     if(verbose >= 1)
     {
         std::cout << "[pocolog2msgpack] Verbosity level is "
@@ -76,6 +87,12 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    return convert(logfiles, output, containerLimit, only, start, end,
-                   verbose);
+    if(align_named_vector && !flatten)
+    {
+        std::cerr << "[pocolog2msgpack] align_named_vector only supported in flatten mode." << std::endl;
+        return EXIT_FAILURE;
+    }
+    
+    
+    return convert(logfiles, output, containerLimit, only, start, end, flatten, align_named_vector, compress, verbose);
 }
