@@ -29,7 +29,7 @@ find_package(PythonInterp 3)
 if(PYTHONINTERP_FOUND)
     install(
         CODE "execute_process(
-            COMMAND ${PYTHON_EXECUTABLE} -m pip install -v -v --prefix=${CMAKE_INSTALL_PREFIX} .
+            COMMAND ${PYTHON_EXECUTABLE} -m pip install --user .
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python-pocolog2msgpack)"
     )
 endif(PYTHONINTERP_FOUND)
