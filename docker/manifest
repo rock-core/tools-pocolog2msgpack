@@ -5,5 +5,7 @@ package_sets:
 #   - github: rock-simulation/simulation-package_set
 
 layout:
+   - yaml-cpp
    - tools/pocolog_cpp
+   - tools/msgpack-c
    - typelib
