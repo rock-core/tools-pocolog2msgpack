@@ -1,17 +1,24 @@
 FROM af01/pocolog2msgpack-ci
-
-RUN git clone https://github.com/rock-core/tools-pocolog2msgpack.git
-RUN mkdir /opt/rock/tools-pocolog2msgpack/build
-WORKDIR /opt/rock/tools-pocolog2msgpack/build
-RUN source /opt/rock/env.sh && cmake ..
-RUN source /opt/rock/env.sh && make install
+#FROM pocolog2msgpack_env
+ARG DEBIAN_FRONTEND=noninteractive
+RUN mkdir -p ~/.ssh
+RUN apt-get update && apt-get -y install curl jq
+RUN curl --silent "https://api.github.com/meta" | jq --raw-output '"github.com "+.ssh_keys[]' > ~/.ssh/known_hosts
+RUN git config --global user.email "you@example.com"
+RUN git config --global user.name "Your Name"
+RUN echo "USE_PYTHON: true" >> /opt/rock/.autoproj/config.yml
+RUN source /opt/rock/env.sh && autoproj update --no-interactive tools/pocolog2msgpack
+RUN source /opt/rock/env.sh && autoproj build --verbose --no-interactive tools/pocolog2msgpack
+# RUN apt remove -y *boost*-dev build-essential
+RUN rm -rf /var/lib/apt/lists/*
 
 COPY run.sh /opt/rock/run.sh
-RUN chmod 777 /opt/rock/run.sh
+RUN chmod +x /opt/rock/run.sh
 
 ENTRYPOINT ["/opt/rock/run.sh"]
 
 # build docker image:
 # docker build -t af01/pocolog2msgpack -f Dockerfile_CLI .
+# or from pocolog2msgpack_env: docker build -t "pocolog2msgpack_runner" -f Dockerfile_CLI .
 # use docker container:
 # docker run --interactive --rm --tty --volume "$PWD":/wd --workdir /wd -it af01/pocolog2msgpack [arguments]
