@@ -5,3 +5,5 @@ Autobuild::Package.each do |name, pkg|
     end
 end
 
+Autobuild::Package['typelib'].define "BUILD_TESTING", "OFF"
+Autobuild::Package['base/types'].define "BINDINGS_RUBY", "OFF"

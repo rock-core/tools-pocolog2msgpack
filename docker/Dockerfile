@@ -28,8 +28,8 @@ RUN apt-get update && \
       libboost-regex-dev \
       libboost-system-dev \
       libboost-thread-dev \
-      libopenscenegraph-dev \
       libxml2-dev
+      #libopenscenegraph-dev \
       #libqt4-dev \
       #libqt4-opengl-dev \
       #libxml2-dev \

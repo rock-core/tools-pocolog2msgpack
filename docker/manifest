@@ -9,3 +9,8 @@ layout:
    - tools/pocolog_cpp
    - tools/msgpack-c
    - typelib
+
+
+exclude_packages:
+  - gui/vizkit3d
+  - rice
