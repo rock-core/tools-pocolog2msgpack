@@ -55,6 +55,7 @@ RUN source env.sh && autoproj build --verbose --no-interactive
 
 # Reset git configuration
 RUN rm /root/.gitconfig
+RUN rm -rf /var/lib/apt/lists/*
 
 LABEL maintainer="Alexander.Fabisch@dfki.de"
 LABEL version="1.1.0"
@@ -64,3 +65,5 @@ LABEL description="Image providing the dependencies of pocolog2msgpack"
 # docker build -t af01/pocolog2msgpack-ci .
 # create docker container:
 # docker run -it af01/pocolog2msgpack-ci
+# or
+# docker build -t "pocolog2msgpack_env" .
