@@ -13,6 +13,7 @@ RUN apt-get update && \
       python3 \
       python3-pexpect \
       python3-msgpack \
+      python3-setuptools \
       python3-distutils \
       python3-nose \
       castxml \
@@ -28,12 +29,11 @@ RUN apt-get update && \
       libboost-regex-dev \
       libboost-system-dev \
       libboost-thread-dev \
-      libxml2-dev
-      #libopenscenegraph-dev \
-      #libqt4-dev \
-      #libqt4-opengl-dev \
-      #libxml2-dev \
-      #qt4-qmake
+      libxml2-dev \
+      doxygen \
+      graphviz \
+      libyaml-cpp-dev \
+      zlib1g-dev
 
 SHELL ["/bin/bash", "-c"]
 ENV SHELL=/bin/bash
