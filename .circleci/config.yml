@@ -11,7 +11,7 @@ jobs:
             SHELL: "/bin/bash"
           command: |
             mkdir -p ~/.ssh
-            apt update && apt install -y install curl jq
+            apt update && apt install -y curl jq
             curl --silent "https://api.github.com/meta" | jq --raw-output '"github.com "+.ssh_keys[]' > ~/.ssh/known_hosts
             mkdir -p /opt/rock/autoproj/overrides.d
             echo "- tools/pocolog2msgpack:" > /opt/rock/autoproj/overrides.d/10-tools_pocolog2msgpack.yml
