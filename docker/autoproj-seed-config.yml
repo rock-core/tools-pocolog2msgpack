@@ -1,0 +1,23 @@
+---
+osdeps_mode: all
+apt_dpkg_update: true
+GITHUB: http,ssh
+GITHUB_ROOT: https://github.com
+GITHUB_PUSH_ROOT: 'git@github.com:'
+GITHUB_PRIVATE_ROOT: 'git@github.com:'
+GITLAB: http,ssh
+GITLAB_ROOT: https://gitlab.com
+GITLAB_PUSH_ROOT: 'git@gitlab.com:'
+GITLAB_PRIVATE_ROOT: 'git@gitlab.com:'
+ldgold: false
+ROCK_SELECTED_FLAVOR: master
+ROCK_FLAVOR: master
+ROCK_BRANCH: master
+typelib_cxx_loader: castxml
+USE_PYTHON: true
+rtt_target: gnulinux
+rtt_corba_implementation: omniorb
+ccache: false
+iceCC: false
+BACKBONE_USE_FUTURE: true
+
