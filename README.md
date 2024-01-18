@@ -51,6 +51,8 @@ your manifest:
        - tools/pocolog2msgpack
        ...
 
+**Important** when installing the library through Autproj, the Python part of this library and the correspondent python dependencies will only get installed if in your Autoproj settings the USE_PYTHON flag is set to true.
+
 ## Usage
 
 This repository contains a program that will convert files from the pocolog log format to MessagePack format. It is called `pocolog2msgpack`. These are its options:
