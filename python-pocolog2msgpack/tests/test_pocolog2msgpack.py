@@ -5,7 +5,7 @@
 
 import unittest
 
-from pocolog2msgpack import pocolog2msgpack
+import pocolog2msgpack
 
 
 class TestPocolog2msgpack(unittest.TestCase):

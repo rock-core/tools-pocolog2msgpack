@@ -17,7 +17,6 @@
   <depend package="python3-setuptools" optional="1" />
   <depend package="python3-nose" optional="1" />
   <depend package="python3-pexpect" optional="1" />
-  <depend package="python3-msgpack" optional="1" />
   <depend package="python3-pip" optional="1" />
 
   <keywords>
