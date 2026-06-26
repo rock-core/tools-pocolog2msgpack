@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM ubuntu:24.04
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && \
@@ -14,7 +14,7 @@ RUN apt-get update && \
       python3-pexpect \
       python3-msgpack \
       python3-setuptools \
-      python3-distutils \
+      python3-pip \
       python3-nose \
       castxml \
       libeigen3-dev \
@@ -38,6 +38,11 @@ RUN apt-get update && \
 SHELL ["/bin/bash", "-c"]
 ENV SHELL=/bin/bash
 
+# Ubuntu 24.04 ships pip as an "externally managed" environment (PEP 668). The
+# pocolog2msgpack CMakeLists installs its python module via `pip install --user .`
+# during `make install`; allow that (and our later system-wide install) to proceed.
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
+
 # autoproj needs these to be defined (will be removed later):
 RUN git config --global user.email infuse@example.com \
     && git config --global user.name InFuse
@@ -45,7 +50,9 @@ RUN git config --global user.email infuse@example.com \
 WORKDIR /opt/rock
 COPY autoproj-seed-config.yml /opt/rock/
 RUN wget http://www.rock-robotics.org/autoproj_bootstrap --directory-prefix=/opt/rock/
-RUN ruby autoproj_bootstrap git https://github.com/rock-core/buildconf.git --no-interactive --seed-config=autoproj-seed-config.yml
+# --bundler-version pins bundler below 4.0, which current autoproj cannot use
+# (rock-core/autoproj#424). 2.7.2 is the last 2.x release.
+RUN ruby autoproj_bootstrap git https://github.com/rock-core/buildconf.git --no-interactive --seed-config=autoproj-seed-config.yml --bundler-version=2.7.2
 COPY manifest /opt/rock/autoproj
 COPY init.rb /opt/rock/autoproj
 COPY overrides.rb /opt/rock/autoproj

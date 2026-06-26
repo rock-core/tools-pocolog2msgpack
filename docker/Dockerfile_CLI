@@ -9,6 +9,12 @@ RUN git config --global user.name "Your Name"
 RUN echo "USE_PYTHON: true" >> /opt/rock/.autoproj/config.yml
 RUN source /opt/rock/env.sh && autoproj update --no-interactive tools/pocolog2msgpack
 RUN source /opt/rock/env.sh && autoproj build --verbose --no-interactive tools/pocolog2msgpack
+
+# The CMake build installs the python module with `pip install --user .` as root,
+# which lands in /root/.local and is not on env.sh's PYTHONPATH nor readable by a
+# non-root runtime user. Install it system-wide so `import pocolog2msgpack`
+# (incl. object2relational) works for any user without sourcing env.sh.
+RUN pip3 install --break-system-packages /opt/rock/tools/pocolog2msgpack/python-pocolog2msgpack
 # RUN apt remove -y *boost*-dev build-essential
 RUN rm -rf /var/lib/apt/lists/*
 
