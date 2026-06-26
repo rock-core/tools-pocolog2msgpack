@@ -20,4 +20,10 @@ rtt_corba_implementation: omniorb
 ccache: false
 iceCC: false
 BACKBONE_USE_FUTURE: true
+# Pin facets below 3.2.0: newer facets breaks utilrb used by autoproj on modern
+# Ruby (rock-core/autoproj#432/#433).
+plugins:
+  facets:
+  - "< 3.2.0"
+  - {}
 
